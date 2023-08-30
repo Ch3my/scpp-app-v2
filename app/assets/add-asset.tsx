@@ -18,11 +18,6 @@ import { ScppProvider, ScppContext } from "../ScppContext"
 import { ConvertToBase64 } from "../../helpers/base64-file-enconder"
 import { CompressAndResizeImage } from "../../helpers/img-compressor"
 
-interface Categoria {
-    id: number;
-    descripcion: string;
-}
-
 export default () => {
     // TODO manejar permiso denegado, mostrar mensaje, etc
     const theme = useTheme();
