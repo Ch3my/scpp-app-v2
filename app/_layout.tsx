@@ -17,7 +17,7 @@ const StackLayout = () => {
         <ThemeProvider value={navTheme}>
             <PaperProvider theme={paperTheme}>
                 <StatusBar style={themeName == "dark" ? "light" : "dark"} />
-                <Stack screenOptions={{headerShown: false}}>
+                <Stack>
                     <Stack.Screen name="(tabs)" options={{ headerShown: false }}></Stack.Screen>
                 </Stack>
             </PaperProvider>

@@ -1,4 +1,7 @@
-import {Text} from "react-native"
+import {
+    useTheme, Text, Appbar,
+    Modal, Portal, IconButton
+} from 'react-native-paper';
 
 export default () => {
     return (
