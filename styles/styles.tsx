@@ -1,15 +1,14 @@
 import { StyleSheet } from 'react-native';
-import { useTheme } from 'react-native-paper';
 
 export const GetAppStyles = (theme: any) => StyleSheet.create({
     container: {
         backgroundColor: theme.colors.background,
-        padding: 10
+        padding: 10,
+        flex: 1
     },
     btnRow: {
         flexDirection: "row",
         justifyContent: "flex-start",
-        margin: 10
     },
     btnRowBtn: {
         marginHorizontal: 5
@@ -24,7 +23,6 @@ export const GetAppStyles = (theme: any) => StyleSheet.create({
         justifyContent: "flex-end",
     },
     centerContentContainer: {
-        flex: 1,
         alignItems: 'center',
         justifyContent: 'center'
     }

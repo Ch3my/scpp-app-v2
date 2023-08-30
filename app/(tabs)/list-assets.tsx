@@ -8,7 +8,7 @@ export default () => {
     const appStyles = GetAppStyles(theme)
 
     return (
-        <ScrollView>
+        <ScrollView style={appStyles.container}>
             <Stack.Screen options={{ headerTitle: "Assets" }} />
             <View style={appStyles.btnRow}>
                 <Link href="/assets/add-asset" asChild>
