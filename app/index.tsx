@@ -1,9 +1,9 @@
 import { Redirect } from "expo-router"
-import { GetData } from "../helpers/async-storage-helper"
-import { useRef, useEffect, useState, useContext } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { ScppContext } from "./ScppContext"
-import { Link, Stack } from "expo-router";
-import { StyleSheet, View, ScrollView } from 'react-native';
+import { Stack } from "expo-router";
+import { StyleSheet, View } from 'react-native';
+import { Text } from "react-native-paper"
 
 const StartPage = () => {
     const [redirect, setRedirect] = useState("/entrance/login");
@@ -33,13 +33,20 @@ const StartPage = () => {
         checkLoggedIn();
     }, [isReady])
 
-    if (!isReady || !apiReady) {
-        // TODO show APP LOGO
-        return null
-    }
+    //if (!isReady || !apiReady) {
+    // TODO show APP LOGO
+    //    return null
+    //}
 
     return (
-            <Redirect href={redirect} />
+        <View>
+            <Stack.Screen options={{ headerShown: false }} />
+            {(isReady && apiReady) ?
+                <Redirect href={redirect} />
+                :
+                <Text>WAITING</Text>
+            }
+        </View>
     )
 }
 

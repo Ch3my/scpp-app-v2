@@ -17,7 +17,10 @@ export default () => {
     const { sessionHash, apiPrefix } = useContext(ScppContext);
     const [assetList, setAssetList] = useState<Asset[]>([])
 
+    const [getAssetsApiCalling, setGetAssetsApiCalling] = useState<boolean>(true)
+
     const getData = async () => {
+        setGetAssetsApiCalling(true)
         try {
             const response: AxiosResponse<any> = await axios.get(apiPrefix + '/assets', {
                 params: {
@@ -30,6 +33,7 @@ export default () => {
         } catch (error) {
             console.log(error);
         }
+        setGetAssetsApiCalling(false)
     }
 
     useEffect(() => {
@@ -74,7 +78,7 @@ export default () => {
                     <IconButton
                         icon="file-edit"
                         iconColor={theme.colors.onSecondary}
-                        onPress={()=> {editAction()}}
+                        onPress={() => { editAction() }}
                     />
                 </Animated.View>
             </View>
@@ -108,7 +112,12 @@ export default () => {
                     <DataTable.Title style={{ flex: 0.5 }}>Fecha</DataTable.Title>
                     <DataTable.Title >Descripcion</DataTable.Title>
                 </DataTable.Header>
-                {assetList.map((item) => (
+                {getAssetsApiCalling &&
+                    <DataTable.Row>
+                        <DataTable.Cell style={{ justifyContent: "center" }}>Cargando...</DataTable.Cell>
+                    </DataTable.Row>
+                }
+                {!getAssetsApiCalling && assetList.map((item) => (
                     <Swipeable
                         renderRightActions={(progress, dragX) => rightSwipe(progress, dragX, item.id)}
                         key={item.id}
@@ -119,6 +128,11 @@ export default () => {
                         </DataTable.Row>
                     </Swipeable>
                 ))}
+                {(assetList.length == 0 && !getAssetsApiCalling) &&
+                    <DataTable.Row>
+                        <DataTable.Cell style={{ justifyContent: "center" }}>No hay Datos</DataTable.Cell>
+                    </DataTable.Row>
+                }
             </DataTable>
         </ScrollView>
     )

@@ -1,4 +1,3 @@
-
 import {
     StyleSheet, Text, TouchableOpacity,
     View, ScrollView, Image, FlatList
@@ -103,7 +102,8 @@ export default () => {
         }
         let response = await axios.post(apiPrefix + '/assets', apiArgs)
         if (response.data.hasErrors) {
-            // TODO show Error
+            setSnackbarMsg("Error al guardar Asset")
+            setShowSnackBar(true)
             return
         }
         setSnackbarMsg("Asset guardado con Exito")
@@ -134,73 +134,71 @@ export default () => {
                     </Dialog.ScrollArea>
                 </Dialog>
             </Portal>
-            <View style={appStyles.container}>
-                <View style={appStyles.btnRow}>
-                    <IconButton
-                        style={appStyles.btnRowBtn}
-                        icon="content-save"
-                        mode="contained-tonal"
-                        containerColor={theme.colors.primary}
-                        iconColor={theme.colors.onPrimary}
-                        onPress={saveAsset}
-                    />
-                </View>
-                <ScrollView>
-                    <TextInput label='Descripción'
-                        style={{ marginBottom: 5 }}
-                        mode="outlined"
-                        value={assetDescription}
-                        autoCapitalize="none"
-                        onChangeText={text => setAssetDescription(text)} />
-                    <TextInput
-                        style={{ marginBottom: 5 }}
-                        label="Fecha"
-                        mode="outlined"
-                        editable={false}
-                        value={DateTime.fromJSDate(assetDate).toFormat('yyyy-MM-dd')}
-                        right={<TextInput.Icon icon="eye" onPress={() => { setShowDatePicker(true) }} />}
-                    />
-                    {showDatePicker && (
-                        <DateTimePicker testID="dateTimePicker" value={assetDate} mode="date"
-                            display="default" onChange={onChangeDatePicker}
-                        />
-                    )}
-                    <TextInput
-                        style={{ marginBottom: 5 }}
-                        label="Categoria"
-                        mode="outlined"
-                        editable={false}
-                        value={assetCatName}
-                        right={<TextInput.Icon icon="eye" onPress={() => { setShowCategoriaList(true) }} />}
-                    />
-
-                    {!showCamera &&
-                        <Button icon="camera" mode="contained" onPress={() => setShowCamera(true)}>
-                            Agregar Foto
-                        </Button>
-                    }
-                    <View style={appStyles.centerContentContainer}>
-                        {showCamera &&
-                            <Camera style={appStyles.camera} type={type} ref={cameraRef} />
-                        }
-                        {!showCamera &&
-                            <Image
-                                style={appStyles.camera}
-                                source={{ uri: photoLocation }} />
-                        }
-                    </View>
-                    {showCamera &&
-                        <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
-                            <Button icon="camera" mode="contained-tonal" onPress={toggleCameraType}>
-                                Flip Camara
-                            </Button>
-                            <Button icon="camera" mode="contained" onPress={takePicture}>
-                                Tomar Foto
-                            </Button>
-                        </View>
-                    }
-                </ScrollView>
+            <View style={[appStyles.btnRow, { backgroundColor: theme.colors.background, padding: 10 }]}>
+                <IconButton
+                    style={appStyles.btnRowBtn}
+                    icon="content-save"
+                    mode="contained-tonal"
+                    containerColor={theme.colors.primary}
+                    iconColor={theme.colors.onPrimary}
+                    onPress={saveAsset}
+                />
             </View>
+            <ScrollView style={appStyles.container}>
+                <TextInput label='Descripción'
+                    style={{ marginBottom: 5 }}
+                    mode="outlined"
+                    value={assetDescription}
+                    autoCapitalize="none"
+                    onChangeText={text => setAssetDescription(text)} />
+                <TextInput
+                    style={{ marginBottom: 5 }}
+                    label="Fecha"
+                    mode="outlined"
+                    editable={false}
+                    value={DateTime.fromJSDate(assetDate).toFormat('yyyy-MM-dd')}
+                    right={<TextInput.Icon icon="calendar" onPress={() => { setShowDatePicker(true) }} />}
+                />
+                {showDatePicker && (
+                    <DateTimePicker testID="dateTimePicker" value={assetDate} mode="date"
+                        display="default" onChange={onChangeDatePicker}
+                    />
+                )}
+                <TextInput
+                    style={{ marginBottom: 5 }}
+                    label="Categoria"
+                    mode="outlined"
+                    editable={false}
+                    value={assetCatName}
+                    right={<TextInput.Icon icon="chevron-down" onPress={() => { setShowCategoriaList(true) }} />}
+                />
+
+                {!showCamera &&
+                    <Button icon="camera" mode="contained" onPress={() => setShowCamera(true)}>
+                        Agregar Foto
+                    </Button>
+                }
+                <View style={appStyles.centerContentContainer}>
+                    {showCamera &&
+                        <Camera style={appStyles.camera} type={type} ref={cameraRef} />
+                    }
+                    {!showCamera &&
+                        <Image
+                            style={appStyles.camera}
+                            source={{ uri: photoLocation }} />
+                    }
+                </View>
+                {showCamera &&
+                    <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
+                        <Button icon="camera" mode="contained-tonal" onPress={toggleCameraType}>
+                            Flip Camara
+                        </Button>
+                        <Button icon="camera" mode="contained" onPress={takePicture}>
+                            Tomar Foto
+                        </Button>
+                    </View>
+                }
+            </ScrollView>
         </View>
     )
 }

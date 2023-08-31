@@ -25,5 +25,10 @@ export const GetAppStyles = (theme: any) => StyleSheet.create({
     centerContentContainer: {
         alignItems: 'center',
         justifyContent: 'center'
-    }
+    },
+    totalDiv: {
+        alignItems: 'flex-end',
+        padding: 15,
+        marginTop: 10
+      }
 });
