@@ -1,14 +1,12 @@
 import { ScrollView, View, KeyboardAvoidingView, StyleSheet } from 'react-native'
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState, useContext } from 'react'
 import { Button, Card, TextInput } from 'react-native-paper';
 import axios from 'axios'
 import { ScppContext } from "../ScppContext"
-import { StoreData } from "../../helpers/async-storage-helper"
+import { router, Stack } from 'expo-router';
 
 export default () => {
     const { sessionHash, apiPrefix, updateSessionHash } = useContext(ScppContext);
-
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
 
@@ -41,11 +39,13 @@ export default () => {
             console.log("El usuario no esta autorizado")
             return
         }
-        updateSessionHash(response.data.sessionHash)
+        await updateSessionHash(response.data.sessionHash)
+        router.replace('/dashboard');
     }
 
     return (
         <KeyboardAvoidingView style={styles.container} behavior="padding">
+            <Stack.Screen options={{ headerTitle: "SCPP" }} />
             <Card style={styles.card}>
                 <Card.Cover source={{ uri: 'https://picsum.photos/700' }} />
                 <Card.Content>

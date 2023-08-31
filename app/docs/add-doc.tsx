@@ -30,7 +30,6 @@ export default () => {
     const [listOfCategoria, setListOfCategoria] = useState<Categoria[]>([])
     const [listOfTipoDoc, setListOfTipoDoc] = useState<TipoDoc[]>([])
 
-
     let [docDate, setDocDate] = useState<Date>(new Date())
     let [docCatId, setDocCatId] = useState<number>(0)
     let [docCatName, setDocCatName] = useState<string>("")
@@ -38,7 +37,6 @@ export default () => {
     let [docTipoDocName, setDocTipoDocName] = useState<string>("")
     let [docProposito, setDocProposito] = useState<string>("")
     let [docMonto, setDocMonto] = useState<number>(0)
-
 
     useEffect(() => {
         const getCategorias = async () => {
@@ -104,7 +102,7 @@ export default () => {
             setShowSnackBar(true)
             return
         }
-        setSnackbarMsg("Asset guardado con Exito")
+        setSnackbarMsg("Documento guardado con Exito")
         setShowSnackBar(true)
     }
 
@@ -214,5 +212,4 @@ export default () => {
             </View>
         </View>
     )
-
 }

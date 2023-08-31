@@ -18,3 +18,14 @@ export const GetData = async (key: string): Promise<string | null> => {
     return null;
   }
 };
+
+export const DeleteData = async (key: string): Promise<boolean> => {
+  try {
+    await AsyncStorage.removeItem(key);
+    return true; // Return true if deletion is successful
+  } catch (e) {
+    // Handle error deleting value
+    console.error('Error deleting value:', e);
+    return false;
+  }
+};
