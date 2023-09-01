@@ -1,8 +1,8 @@
-import { ScrollView, View, Animated } from "react-native"
-import { Link, useNavigation, Redirect, Stack, router } from "expo-router";
+import { ScrollView, View, Animated, InteractionManager } from "react-native"
+import { Link, useNavigation, Redirect, Stack, router, useFocusEffect } from "expo-router";
 import { IconButton, useTheme, DataTable, Text } from 'react-native-paper';
 import { GetAppStyles } from "../../styles/styles"
-import { useEffect, useState, useRef, useContext } from 'react';
+import { useEffect, useState, useCallback, useContext } from 'react';
 import axios, { AxiosResponse } from 'axios'
 import { ScppContext } from "../ScppContext"
 import { ScppThemeContext } from '../ScppThemeContext';
@@ -36,9 +36,14 @@ export default () => {
         setGetAssetsApiCalling(false)
     }
 
-    useEffect(() => {
-        getData()
-    }, [])
+    useFocusEffect(
+        useCallback(() => {
+            const task = InteractionManager.runAfterInteractions(() => {
+                getData()
+            })
+            return () => task.cancel();
+        }, [useNavigation().isFocused()])
+    );
 
     const rightSwipe = (progress: any, dragX: any, id: number) => {
         // outputRange: [100, 1] contiene el largo del item
@@ -55,6 +60,14 @@ export default () => {
         const editAction = () => {
             router.push("/assets/edit/" + id)
         }
+        const deleteAsset = async () => {
+            try {
+                await axios.delete(apiPrefix + '/assets', { data: { id, sessionHash } })
+                getData()
+            } catch (error) {
+                console.log(error)
+            }
+        }
         return (
             <View style={{ flexDirection: 'row', width: 100 }}>
                 <Animated.View style={{
@@ -67,6 +80,7 @@ export default () => {
                         style={appStyles.btnRowBtn}
                         icon="delete"
                         iconColor={theme.colors.onError}
+                        onPress={deleteAsset}
                     />
                 </Animated.View>
                 <Animated.View style={{
@@ -76,7 +90,7 @@ export default () => {
                     transform: [{ translateX: translateEdit }]
                 }}>
                     <IconButton
-                        icon="file-edit"
+                        icon="eye"
                         iconColor={theme.colors.onSecondary}
                         onPress={() => { editAction() }}
                     />

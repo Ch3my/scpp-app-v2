@@ -2,18 +2,25 @@ import { Redirect } from "expo-router"
 import { useEffect, useState, useContext } from 'react';
 import { ScppContext } from "./ScppContext"
 import { Stack } from "expo-router";
-import { StyleSheet, View } from 'react-native';
-import { Text } from "react-native-paper"
+import { StyleSheet, View, Image } from 'react-native';
+import { Text, useTheme } from "react-native-paper"
+import { GetAppStyles } from "../styles/styles"
 
 const StartPage = () => {
     const [redirect, setRedirect] = useState("/entrance/login");
     const [apiReady, setApiReady] = useState(false);
     const { sessionHash, apiPrefix, isReady } = useContext(ScppContext);
+    const theme = useTheme();
+    const appStyles = GetAppStyles(theme)
 
     // Check if login, if not show LoginPage
     useEffect(() => {
         const checkLoggedIn = async () => {
-            if (!sessionHash) {
+            if (!sessionHash && !isReady) {
+                return
+            }
+            if (!sessionHash && isReady) {
+                setApiReady(true)
                 return
             }
             try {
@@ -33,19 +40,18 @@ const StartPage = () => {
         checkLoggedIn();
     }, [isReady])
 
-    //if (!isReady || !apiReady) {
-    // TODO show APP LOGO
-    //    return null
-    //}
-
     return (
-        <View>
+        <View style={appStyles.container}>
             <Stack.Screen options={{ headerShown: false }} />
-            {(isReady && apiReady) ?
+            {(isReady && apiReady) &&
                 <Redirect href={redirect} />
-                :
-                <Text>WAITING</Text>
             }
+            <View style={[appStyles.centerContentContainer, { flex: 1 }]}>
+                <Image source={require('../assets/images/splash.png')}
+                    style={{ width: 350  }}
+                    resizeMode='center'
+                />
+            </View>
         </View>
     )
 }

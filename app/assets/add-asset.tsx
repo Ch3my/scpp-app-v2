@@ -198,6 +198,7 @@ export default () => {
                         </Button>
                     </View>
                 }
+                <View style={{margin:10}}></View>
             </ScrollView>
         </View>
     )

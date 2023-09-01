@@ -13,7 +13,24 @@
         }
       ]
     ],
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "icon": "./assets/images/icon.png",
     "name": "scpp-app-v2",
-    "slug": "scpp-app-v2"
+    "slug": "scpp-app-v2",
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "1a83b374-e31c-4b85-a103-c571c8c0bd50"
+      }
+    },
+    "android": {
+      "package": "com.chemy.scppappv2"
+    }
   }
 }
