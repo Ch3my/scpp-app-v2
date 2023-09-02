@@ -88,7 +88,20 @@ export default () => {
         setShowCategoriaList(false)
     }
     const saveAsset = async () => {
+        setShowSnackBar(false)
         if (!photoLocation) {
+            setSnackbarMsg("Todos los campos son Obligatorios")
+            setShowSnackBar(true)
+            return
+        }
+        if (assetCatName == "") {
+            setSnackbarMsg("Todos los campos son Obligatorios")
+            setShowSnackBar(true)
+            return
+        }
+        if (assetDescription == "") {
+            setSnackbarMsg("Todos los campos son Obligatorios")
+            setShowSnackBar(true)
             return
         }
         let compressImgUri = await CompressAndResizeImage(photoLocation)
@@ -114,6 +127,7 @@ export default () => {
         <View style={{ flex: 1 }}>
             <Stack.Screen options={{ headerTitle: "Agregar Asset" }} />
             <Snackbar
+                duration={2500}
                 visible={showSnackBar}
                 style={{ zIndex: 999 }}
                 onDismiss={() => { setShowSnackBar(false) }}>
@@ -134,7 +148,7 @@ export default () => {
                     </Dialog.ScrollArea>
                 </Dialog>
             </Portal>
-            <View style={[appStyles.btnRow, { backgroundColor: theme.colors.background, padding: 10 }]}>
+            <View style={[appStyles.btnRow ]}>
                 <IconButton
                     style={appStyles.btnRowBtn}
                     icon="content-save"
@@ -147,14 +161,16 @@ export default () => {
             <ScrollView style={appStyles.container}>
                 <TextInput label='Descripción'
                     style={{ marginBottom: 5 }}
-                    mode="outlined"
+                    mode="flat"
+                    dense={true}
                     value={assetDescription}
                     autoCapitalize="none"
                     onChangeText={text => setAssetDescription(text)} />
                 <TextInput
                     style={{ marginBottom: 5 }}
                     label="Fecha"
-                    mode="outlined"
+                    mode="flat"
+                    dense={true}
                     editable={false}
                     value={DateTime.fromJSDate(assetDate).toFormat('yyyy-MM-dd')}
                     right={<TextInput.Icon icon="calendar" onPress={() => { setShowDatePicker(true) }} />}
@@ -167,7 +183,8 @@ export default () => {
                 <TextInput
                     style={{ marginBottom: 5 }}
                     label="Categoria"
-                    mode="outlined"
+                    mode="flat"
+                    dense={true}
                     editable={false}
                     value={assetCatName}
                     right={<TextInput.Icon icon="chevron-down" onPress={() => { setShowCategoriaList(true) }} />}
@@ -198,7 +215,7 @@ export default () => {
                         </Button>
                     </View>
                 }
-                <View style={{margin:10}}></View>
+                <View style={{ margin: 10 }}></View>
             </ScrollView>
         </View>
     )

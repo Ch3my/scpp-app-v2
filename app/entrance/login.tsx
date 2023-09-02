@@ -50,12 +50,12 @@ export default () => {
                 <Card.Cover source={{ uri: 'https://picsum.photos/700' }} />
                 <Card.Content>
                     <TextInput label='Nombre de Usuario'
-                        mode="outlined"
+                        mode="flat"
                         value={username}
                         autoCapitalize="none"
                         onChangeText={text => setUsername(text)} />
                     <TextInput label='Contraseña'
-                        mode="outlined"
+                        mode="flat"
                         autoCapitalize="none"
                         secureTextEntry={true}
                         value={password}

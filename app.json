@@ -19,7 +19,7 @@
       "backgroundColor": "#ffffff"
     },
     "icon": "./assets/images/icon.png",
-    "name": "scpp-app-v2",
+    "name": "SCPP",
     "slug": "scpp-app-v2",
     "extra": {
       "router": {

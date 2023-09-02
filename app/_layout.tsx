@@ -9,6 +9,7 @@ import {
 import {
     ThemeProvider
 } from "@react-navigation/native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const StackLayout = () => {
     const { paperTheme, navTheme, themeName } = useContext(ScppThemeContext);

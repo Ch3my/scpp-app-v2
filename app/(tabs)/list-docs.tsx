@@ -137,7 +137,7 @@ export default () => {
     return (
         <View style={{ flex: 1 }}>
             <Stack.Screen options={{ headerTitle: "Documentos" }} />
-            <View style={[appStyles.btnRow, { backgroundColor: theme.colors.background, padding: 10 }]}>
+            <View style={[appStyles.btnRow]}>
                 <Link href="/docs/add-doc" asChild>
                     <IconButton
                         style={appStyles.btnRowBtn}

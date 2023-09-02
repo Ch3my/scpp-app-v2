@@ -21,8 +21,8 @@ export default () => {
     const appStyles = GetAppStyles(theme)
     const { sessionHash, apiPrefix } = useContext(ScppContext);
 
-    const [monthlyGraphData, setMonthlyGraphData] = useState<MonthlyGraphData>();
-    const [barChartData, setBarChartData] = useState<ExpensesByCategoryData>();
+    const [monthlyGraphData, setMonthlyGraphData] = useState<MonthlyGraphData | null>(null);
+    const [barChartData, setBarChartData] = useState<ExpensesByCategoryData | null>(null);
 
     const getMonthlyGraph = async () => {
         const response: AxiosResponse<any> = await axios.get(apiPrefix + '/monthly-graph', {

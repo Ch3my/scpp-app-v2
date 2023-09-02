@@ -1,6 +1,6 @@
 import { ScrollView, View, Animated, InteractionManager } from "react-native"
-import { Link, useNavigation, Redirect, Stack, router, useFocusEffect } from "expo-router";
-import { IconButton, useTheme, DataTable, Text } from 'react-native-paper';
+import { Link, useNavigation, Stack, router, useFocusEffect } from "expo-router";
+import { IconButton, useTheme, DataTable, Text, Portal, Dialog, Button } from 'react-native-paper';
 import { GetAppStyles } from "../../styles/styles"
 import { useEffect, useState, useCallback, useContext } from 'react';
 import axios, { AxiosResponse } from 'axios'
@@ -18,6 +18,8 @@ export default () => {
     const [assetList, setAssetList] = useState<Asset[]>([])
 
     const [getAssetsApiCalling, setGetAssetsApiCalling] = useState<boolean>(true)
+    const [showConfirmDelete, setShowConfirmDelete] = useState<boolean>(false)
+    const [selectedId, setSelectedId] = useState<number>(0)
 
     const getData = async () => {
         setGetAssetsApiCalling(true)
@@ -34,6 +36,15 @@ export default () => {
             console.log(error);
         }
         setGetAssetsApiCalling(false)
+    }
+    const deleteAsset = async () => {
+        try {
+            await axios.delete(apiPrefix + '/assets', { data: { id: selectedId, sessionHash } })
+            getData()
+        } catch (error) {
+            console.log(error)
+        }
+        setSelectedId(0)
     }
 
     useFocusEffect(
@@ -60,14 +71,6 @@ export default () => {
         const editAction = () => {
             router.push("/assets/edit/" + id)
         }
-        const deleteAsset = async () => {
-            try {
-                await axios.delete(apiPrefix + '/assets', { data: { id, sessionHash } })
-                getData()
-            } catch (error) {
-                console.log(error)
-            }
-        }
         return (
             <View style={{ flexDirection: 'row', width: 100 }}>
                 <Animated.View style={{
@@ -80,7 +83,10 @@ export default () => {
                         style={appStyles.btnRowBtn}
                         icon="delete"
                         iconColor={theme.colors.onError}
-                        onPress={deleteAsset}
+                        onPress={() => {
+                            setShowConfirmDelete(true)
+                            setSelectedId(id)
+                        }}
                     />
                 </Animated.View>
                 <Animated.View style={{
@@ -100,8 +106,26 @@ export default () => {
     }
 
     return (
-        <ScrollView style={appStyles.container}>
+        <View style={{ flex: 1 }}>
             <Stack.Screen options={{ headerTitle: "Assets" }} />
+            <Portal>
+                <Dialog visible={showConfirmDelete} onDismiss={() => { setShowConfirmDelete(false) }}>
+                    <Dialog.Title>Confirme por Favor</Dialog.Title>
+                    <Dialog.Content>
+                        <Text variant="bodyMedium">¿Seguro que quiere eliminar el registro?</Text>
+                    </Dialog.Content>
+                    <Dialog.Actions>
+                        <Button onPress={() => {
+                            setShowConfirmDelete(false)
+                            deleteAsset()
+                        }}>SI</Button>
+                        <Button onPress={() => {
+                            setShowConfirmDelete(false)
+                            setSelectedId(0)
+                        }}>NO</Button>
+                    </Dialog.Actions>
+                </Dialog>
+            </Portal>
             <View style={appStyles.btnRow}>
                 <Link href="/assets/add-asset" asChild>
                     <IconButton
@@ -121,33 +145,36 @@ export default () => {
                     onPress={() => { getData() }}
                 />
             </View>
-            <DataTable>
-                <DataTable.Header>
-                    <DataTable.Title style={{ flex: 0.5 }}>Fecha</DataTable.Title>
-                    <DataTable.Title >Descripcion</DataTable.Title>
-                </DataTable.Header>
-                {getAssetsApiCalling &&
-                    <DataTable.Row>
-                        <DataTable.Cell style={{ justifyContent: "center" }}>Cargando...</DataTable.Cell>
-                    </DataTable.Row>
-                }
-                {!getAssetsApiCalling && assetList.map((item) => (
-                    <Swipeable
-                        renderRightActions={(progress, dragX) => rightSwipe(progress, dragX, item.id)}
-                        key={item.id}
-                        friction={1}>
+            <ScrollView style={appStyles.container}>
+
+                <DataTable>
+                    <DataTable.Header>
+                        <DataTable.Title style={{ flex: 0.5 }}>Fecha</DataTable.Title>
+                        <DataTable.Title >Descripcion</DataTable.Title>
+                    </DataTable.Header>
+                    {getAssetsApiCalling &&
                         <DataTable.Row>
-                            <DataTable.Cell style={{ flex: 0.5 }}>{item.fecha}</DataTable.Cell>
-                            <DataTable.Cell>{item.descripcion}</DataTable.Cell>
+                            <DataTable.Cell style={{ justifyContent: "center" }}>Cargando...</DataTable.Cell>
                         </DataTable.Row>
-                    </Swipeable>
-                ))}
-                {(assetList.length == 0 && !getAssetsApiCalling) &&
-                    <DataTable.Row>
-                        <DataTable.Cell style={{ justifyContent: "center" }}>No hay Datos</DataTable.Cell>
-                    </DataTable.Row>
-                }
-            </DataTable>
-        </ScrollView>
+                    }
+                    {!getAssetsApiCalling && assetList.map((item) => (
+                        <Swipeable
+                            renderRightActions={(progress, dragX) => rightSwipe(progress, dragX, item.id)}
+                            key={item.id}
+                            friction={1}>
+                            <DataTable.Row>
+                                <DataTable.Cell style={{ flex: 0.5 }}>{item.fecha}</DataTable.Cell>
+                                <DataTable.Cell>{item.descripcion}</DataTable.Cell>
+                            </DataTable.Row>
+                        </Swipeable>
+                    ))}
+                    {(assetList.length == 0 && !getAssetsApiCalling) &&
+                        <DataTable.Row>
+                            <DataTable.Cell style={{ justifyContent: "center" }}>No hay Datos</DataTable.Cell>
+                        </DataTable.Row>
+                    }
+                </DataTable>
+            </ScrollView>
+        </View>
     )
 }

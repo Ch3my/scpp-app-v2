@@ -134,9 +134,10 @@ export default () => {
     }
 
     return (
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1 }} >
             <Stack.Screen options={{ headerTitle: "Editar Documento" }} />
             <Snackbar
+                duration={2500}
                 visible={showSnackBar}
                 style={{ zIndex: 999 }}
                 onDismiss={() => { setShowSnackBar(false) }}>
@@ -170,77 +171,81 @@ export default () => {
                     </Dialog.ScrollArea>
                 </Dialog>
             </Portal>
-            <View style={appStyles.container}>
-                <View style={appStyles.btnRow}>
-                    <IconButton
-                        style={appStyles.btnRowBtn}
-                        icon="content-save"
-                        mode="contained-tonal"
-                        containerColor={theme.colors.primary}
-                        iconColor={theme.colors.onPrimary}
-                        onPress={updateDoc}
-                    />
-                </View>
-                <ScrollView>
-                    <TextInput mode="outlined" label='Monto'
-                        keyboardType={'decimal-pad'}
-                        value={docMonto.toString()}
-                        render={props =>
-                            <MaskedTextInput
-                                {...props}
-                                type="currency"
-                                options={{
-                                    prefix: '$',
-                                    groupSeparator: '.',
-                                    precision: 0
-                                }}
-                                onChangeText={(formatted, extracted) => {
-                                    setDocMonto(parseInt(extracted))
-                                }}
-                            />
-                        } />
-                    <TextInput label='Proposito'
-                        style={{ marginBottom: 5 }}
-                        mode="outlined"
-                        value={docProposito}
-                        autoCapitalize="none"
-                        onChangeText={text => setDocProposito(text)} />
-                    <TextInput
-                        style={{ marginBottom: 5 }}
-                        label="Fecha"
-                        mode="outlined"
-                        editable={false}
-                        value={docDate.toFormat('yyyy-MM-dd')}
-                        right={<TextInput.Icon icon="calendar" onPress={() => { setShowDocDatePicker(true) }} />}
-                    />
-                    {showDocDatePicker && (
-                        <DateTimePicker testID="dateTimePicker" value={docDate.toJSDate()} mode="date"
-                            display="default" onChange={(evt, date) => {
-                                if (date) {
-                                    onChangeDocDatePicker(DateTime.fromJSDate(date))
-                                }
+            <View style={appStyles.btnRow}>
+                <IconButton
+                    style={appStyles.btnRowBtn}
+                    icon="content-save"
+                    mode="contained-tonal"
+                    containerColor={theme.colors.primary}
+                    iconColor={theme.colors.onPrimary}
+                    onPress={updateDoc}
+                />
+            </View>
+            <ScrollView style={appStyles.container}>
+                <TextInput mode="flat" label='Monto'
+                    keyboardType={'decimal-pad'}
+                    style={{ marginBottom: 5 }}
+                    dense={true}
+                    value={docMonto.toString()}
+                    render={props =>
+                        <MaskedTextInput
+                            {...props}
+                            type="currency"
+                            options={{
+                                prefix: '$',
+                                groupSeparator: '.',
+                                precision: 0
+                            }}
+                            onChangeText={(formatted, extracted) => {
+                                setDocMonto(parseInt(extracted))
                             }}
                         />
-                    )}
-                    <TextInput
-                        style={{ marginBottom: 5 }}
-                        label="Tipo Doc"
-                        mode="outlined"
-                        editable={false}
-                        value={docTipoDocName}
-                        right={<TextInput.Icon icon="chevron-down" onPress={() => { setShowTipoDocList(true) }} />}
+                    } />
+                <TextInput label='Proposito'
+                    style={{ marginBottom: 5 }}
+                    mode="flat"
+                    dense={true}
+                    value={docProposito}
+                    autoCapitalize="none"
+                    onChangeText={text => setDocProposito(text)} />
+                <TextInput
+                    style={{ marginBottom: 5 }}
+                    label="Fecha"
+                    mode="flat"
+                    dense={true}
+                    editable={false}
+                    value={docDate.toFormat('yyyy-MM-dd')}
+                    right={<TextInput.Icon icon="calendar" onPress={() => { setShowDocDatePicker(true) }} />}
+                />
+                {showDocDatePicker && (
+                    <DateTimePicker testID="dateTimePicker" value={docDate.toJSDate()} mode="date"
+                        display="default" onChange={(evt, date) => {
+                            if (date) {
+                                onChangeDocDatePicker(DateTime.fromJSDate(date))
+                            }
+                        }}
                     />
-                    <TextInput
-                        style={{ marginBottom: 5 }}
-                        label="Categoria"
-                        mode="outlined"
-                        editable={false}
-                        value={docCatName}
-                        right={<TextInput.Icon icon="chevron-down" onPress={() => { setShowCategoriaList(true) }} />}
-                    />
+                )}
+                <TextInput
+                    style={{ marginBottom: 5 }}
+                    label="Tipo Doc"
+                    mode="flat"
+                    dense={true}
+                    editable={false}
+                    value={docTipoDocName}
+                    right={<TextInput.Icon icon="chevron-down" onPress={() => { setShowTipoDocList(true) }} />}
+                />
+                <TextInput
+                    style={{ marginBottom: 5 }}
+                    label="Categoria"
+                    mode="flat"
+                    dense={true}
+                    editable={false}
+                    value={docCatName}
+                    right={<TextInput.Icon icon="chevron-down" onPress={() => { setShowCategoriaList(true) }} />}
+                />
 
-                </ScrollView>
-            </View>
+            </ScrollView>
         </View>
     )
 }

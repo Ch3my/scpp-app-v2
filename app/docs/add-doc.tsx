@@ -88,6 +88,22 @@ export default () => {
         setShowTipoDocList(false)
     }
     const saveDoc = async () => {
+        setShowSnackBar(false)
+        if (docCatId == 0) {
+            setSnackbarMsg("Selecciona la categoria")
+            setShowSnackBar(true)
+            return
+        }
+        if (docProposito == "") {
+            setSnackbarMsg("Ingresa Proposito")
+            setShowSnackBar(true)
+            return
+        }
+        if (docMonto == 0) {
+            setSnackbarMsg("Ingresa el Monto")
+            setShowSnackBar(true)
+            return
+        }
         let apiArgs = {
             fk_categoria: docCatId,
             proposito: docProposito,
@@ -110,6 +126,7 @@ export default () => {
         <View style={{ flex: 1 }}>
             <Stack.Screen options={{ headerTitle: "Agregar Documento" }} />
             <Snackbar
+            duration={2500}
                 visible={showSnackBar}
                 style={{ zIndex: 999 }}
                 onDismiss={() => { setShowSnackBar(false) }}>
@@ -155,9 +172,11 @@ export default () => {
                     />
                 </View>
                 <ScrollView>
-                    <TextInput mode="outlined" label='Monto'
+                    <TextInput mode="flat" label='Monto'
                         keyboardType={'decimal-pad'}
                         value={docMonto.toString()}
+                        dense={true}
+                        style={{ marginBottom: 5 }}
                         render={props =>
                             <MaskedTextInput
                                 {...props}
@@ -174,14 +193,16 @@ export default () => {
                         } />
                     <TextInput label='Proposito'
                         style={{ marginBottom: 5 }}
-                        mode="outlined"
+                        mode="flat"
+                        dense={true}
                         value={docProposito}
                         autoCapitalize="none"
                         onChangeText={text => setDocProposito(text)} />
                     <TextInput
                         style={{ marginBottom: 5 }}
                         label="Fecha"
-                        mode="outlined"
+                        mode="flat"
+                        dense={true}
                         editable={false}
                         value={DateTime.fromJSDate(docDate).toFormat('yyyy-MM-dd')}
                         right={<TextInput.Icon icon="calendar" onPress={() => { setShowDocDatePicker(true) }} />}
@@ -194,7 +215,8 @@ export default () => {
                     <TextInput
                         style={{ marginBottom: 5 }}
                         label="Tipo Doc"
-                        mode="outlined"
+                        mode="flat"
+                        dense={true}
                         editable={false}
                         value={docTipoDocName}
                         right={<TextInput.Icon icon="chevron-down" onPress={() => { setShowTipoDocList(true) }} />}
@@ -202,7 +224,8 @@ export default () => {
                     <TextInput
                         style={{ marginBottom: 5 }}
                         label="Categoria"
-                        mode="outlined"
+                        mode="flat"
+                        dense={true}
                         editable={false}
                         value={docCatName}
                         right={<TextInput.Icon icon="chevron-down" onPress={() => { setShowCategoriaList(true) }} />}
