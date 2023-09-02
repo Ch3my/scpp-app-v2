@@ -194,7 +194,8 @@ export default () => {
                             <GestureDetector gesture={pinchGesture}>
                                 <Animated.Image
                                     style={[{ flex: 1 }, animatedStyle]}
-                                    source={{ uri: assetAssetData }} />
+                                    source={{ uri: assetAssetData }}
+                                    resizeMode="contain" />
                             </GestureDetector>
                         </GestureDetector>
                     </View>
