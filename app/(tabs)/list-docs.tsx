@@ -50,6 +50,10 @@ export default () => {
         useCallback(() => {
             const task = InteractionManager.runAfterInteractions(() => {
                 getData(null, null, null, null)
+                //useState<string>("Gastos") no se reseteaba al navegar de vuelta
+                //( si reseteaba pero no se veia en la UI)
+                // resetamos a mano para forzar la actualizacion
+                setTipoDocFilterName("Gastos")
             })
             return () => task.cancel();
         }, [useNavigation().isFocused()])
