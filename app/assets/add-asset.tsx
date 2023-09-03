@@ -35,7 +35,7 @@ export default () => {
 
     let [assetDescription, setAssetDescription] = useState<string>("")
     let [assetDate, setAssetDate] = useState<Date>(new Date())
-    let [assetCatId, setAssetCatId] = useState<number>(0)
+    let [assetCatId, setAssetCatId] = useState<number | null>(1)
     let [assetCatName, setAssetCatName] = useState<string>("")
     const [listOfCategoria, setListOfCategoria] = useState<Categoria[]>([])
 
@@ -82,7 +82,7 @@ export default () => {
             setAssetDate(selectedDate)
         }
     }
-    const onUpdateCategoria = ({ id, descripcion }: { id: number, descripcion: string }) => {
+    const onUpdateCategoria = ({ id, descripcion }: { id: number | null, descripcion: string }) => {
         setAssetCatId(id)
         setAssetCatName(descripcion)
         setShowCategoriaList(false)

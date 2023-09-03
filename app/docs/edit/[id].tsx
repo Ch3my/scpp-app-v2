@@ -32,7 +32,7 @@ export default () => {
     const [listOfTipoDoc, setListOfTipoDoc] = useState<TipoDoc[]>([])
 
     let [docDate, setDocDate] = useState<DateTime>(DateTime.local())
-    let [docCatId, setDocCatId] = useState<number>(0)
+    let [docCatId, setDocCatId] = useState<number | null>(0)
     let [docId, setDocId] = useState<number>(0)
     let [docCatName, setDocCatName] = useState<string>("")
     let [docTipoDocId, setDocTipoDocId] = useState<number>(0)
@@ -103,7 +103,7 @@ export default () => {
             setDocDate(selectedDate)
         }
     }
-    const onUpdateCategoria = ({ id, descripcion }: { id: number, descripcion: string }) => {
+    const onUpdateCategoria = ({ id, descripcion }: { id: number | null, descripcion: string }) => {
         setDocCatId(id)
         setDocCatName(descripcion)
         setShowCategoriaList(false)

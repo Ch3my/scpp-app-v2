@@ -1,4 +1,4 @@
 interface Categoria {
-    id: number;
+    id: number | null;
     descripcion: string;
 }
