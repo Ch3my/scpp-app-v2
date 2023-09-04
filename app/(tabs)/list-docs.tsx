@@ -36,6 +36,7 @@ export default () => {
 
     const [tipoDocFilterName, setTipoDocFilterName] = useState<string>("Gastos")
     const [categoriaFilterName, setCategoriaFilterName] = useState<string>("(Todos)")
+    const [searchPhrase, setSearchPhrase] = useState<string | undefined>(undefined)
 
     const [showTipoDocFilter, setShowTipoDocFilter] = useState<boolean>(false)
     const [listOfCategoria, setListOfCategoria] = useState<Categoria[]>([])
@@ -48,12 +49,18 @@ export default () => {
     // to defer our work until the animations or gestures have finished:
     useFocusEffect(
         useCallback(() => {
+            //useState<string>("Gastos") no se reseteaba al navegar de vuelta
+            //( si reseteaba pero no se veia en la UI)
+            // resetamos a mano para forzar la actualizacion
+            setTipoDocFilterName("Gastos")
+            setFechaInicio(DateTime.local().startOf("month"))
+            setFechaTermino(DateTime.local().endOf("month"))
+            setTipoDocFilterName("Gastos")
+            setCategoriaFilterName("(Todos)")
+            setSearchPhrase(undefined)
+
             const task = InteractionManager.runAfterInteractions(() => {
                 getData(null, null, null, null)
-                //useState<string>("Gastos") no se reseteaba al navegar de vuelta
-                //( si reseteaba pero no se veia en la UI)
-                // resetamos a mano para forzar la actualizacion
-                setTipoDocFilterName("Gastos")
             })
             return () => task.cancel();
         }, [useNavigation().isFocused()])
@@ -146,6 +153,7 @@ export default () => {
                     fechaTermino: localFechaTermino?.toFormat('yyyy-MM-dd'),
                     fk_tipoDoc: localTipoDocId,
                     fk_categoria: localCategoriaId,
+                    searchPhrase,
                     sessionHash
                 }
             });
@@ -255,6 +263,13 @@ export default () => {
                     <Dialog.ScrollArea>
                         <TextInput
                             style={{ marginBottom: 5 }}
+                            label="Buscar"
+                            mode="flat"
+                            dense={true}
+                            value={searchPhrase}
+                            onChangeText={text => setSearchPhrase(text)} />
+                        <TextInput
+                            style={{ marginBottom: 5 }}
                             label="Categoria"
                             mode="flat"
                             dense={true}
@@ -284,7 +299,6 @@ export default () => {
                             editable={false}
                             value={fechaTermino?.toFormat('yyyy-MM-dd')}
                             right={<TextInput.Icon icon="calendar" onPress={() => {
-                                console.log("setShowFechaTerminoPicker(true)")
                                 setShowFechaTerminoPicker(true)
                             }} />}
                         />
