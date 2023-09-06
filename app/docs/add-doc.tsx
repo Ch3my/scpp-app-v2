@@ -21,12 +21,13 @@ export default () => {
     const { sessionHash, apiPrefix } = useContext(ScppContext);
 
     const [showDocDatePicker, setShowDocDatePicker] = useState<boolean>(false)
-    const [showCategoriaInput, setShowCategoriaInput] = useState<boolean>(true)   
+    const [showCategoriaInput, setShowCategoriaInput] = useState<boolean>(true)
     const [showCategoriaList, setShowCategoriaList] = useState<boolean>(false)
     const [showTipoDocList, setShowTipoDocList] = useState<boolean>(false)
 
     const [showSnackBar, setShowSnackBar] = useState<boolean>(false)
     const [snackbarMsg, setSnackbarMsg] = useState<string>("")
+    const [negativeMonto, setNegativeMonto] = useState<boolean>(false)
 
     const [listOfCategoria, setListOfCategoria] = useState<Categoria[]>([])
     const [listOfTipoDoc, setListOfTipoDoc] = useState<TipoDoc[]>([])
@@ -111,6 +112,12 @@ export default () => {
             setShowSnackBar(true)
             return
         }
+
+        let computedMonto = docMonto
+        if(negativeMonto){
+            computedMonto *= -1
+        }
+
         let apiArgs: {
             fk_categoria: number | null;
             proposito: string;
@@ -122,7 +129,7 @@ export default () => {
             fk_categoria: null,
             proposito: docProposito,
             fecha: DateTime.fromJSDate(docDate).toFormat('yyyy-MM-dd'),
-            monto: docMonto,
+            monto: computedMonto,
             fk_tipoDoc: docTipoDocId,
             sessionHash,
         }
@@ -194,6 +201,8 @@ export default () => {
                         value={docMonto.toString()}
                         dense={true}
                         style={{ marginBottom: 5 }}
+                        right={<TextInput.Icon icon="minus-circle" onPress={() => { setNegativeMonto(!negativeMonto) }}
+                            color={() => negativeMonto ? "red" : theme.colors.onSurfaceVariant} />}
                         render={props =>
                             <MaskedTextInput
                                 {...props}
@@ -202,10 +211,8 @@ export default () => {
                                     prefix: '$',
                                     groupSeparator: '.',
                                     precision: 0,
-                                    allowNegative: true
                                 }}
                                 onChangeText={(formatted, extracted) => {
-                                    console.log(extracted)
                                     setDocMonto(parseInt(extracted))
                                 }}
                             />

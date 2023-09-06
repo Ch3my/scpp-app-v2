@@ -24,9 +24,11 @@ export default () => {
 
     const [showDocDatePicker, setShowDocDatePicker] = useState<boolean>(false);
     const [showCategoriaList, setShowCategoriaList] = useState<boolean>(false);
+    const [showCategoriaInput, setShowCategoriaInput] = useState<boolean>(true)
     const [showTipoDocList, setShowTipoDocList] = useState<boolean>(false);
     const [showSnackBar, setShowSnackBar] = useState<boolean>(false);
     const [snackbarMsg, setSnackbarMsg] = useState<string>("");
+    const [negativeMonto, setNegativeMonto] = useState<boolean>(false)
 
     const [listOfCategoria, setListOfCategoria] = useState<Categoria[]>([])
     const [listOfTipoDoc, setListOfTipoDoc] = useState<TipoDoc[]>([])
@@ -59,6 +61,13 @@ export default () => {
                     setDocTipoDocId(doc.fk_tipoDoc)
                     setDocCatName(doc.categoria.descripcion)
                     setDocTipoDocName(doc.tipoDoc.descripcion)
+
+                    if (doc.fk_tipoDoc != 1) {
+                        setShowCategoriaInput(false)
+                    }
+                    if (doc.fk_tipoDoc == 1) {
+                        setShowCategoriaInput(true)
+                    }
                 }
             } catch (error) {
                 console.log(error);
@@ -112,16 +121,29 @@ export default () => {
         setDocTipoDocId(id)
         setDocTipoDocName(descripcion)
         setShowTipoDocList(false)
+        if (id != 1) {
+            setShowCategoriaInput(false)
+        }
+        if (id == 1) {
+            setShowCategoriaInput(true)
+        }
     }
     const updateDoc = async () => {
+        let computedMonto = docMonto
+        if (negativeMonto) {
+            computedMonto *= -1
+        }
         let apiArgs = {
             id,
             sessionHash,
             fk_categoria: docCatId,
             proposito: docProposito,
             fecha: docDate.toFormat('yyyy-MM-dd'),
-            monto: docMonto,
+            monto: computedMonto,
             fk_tipoDoc: docTipoDocId
+        }
+        if(docTipoDocId != 1) {
+            apiArgs.fk_categoria = null
         }
         let response = await axios.put(apiPrefix + '/documentos', apiArgs)
         if (response.data.hasErrors) {
@@ -187,6 +209,8 @@ export default () => {
                     style={{ marginBottom: 5 }}
                     dense={true}
                     value={docMonto.toString()}
+                    right={<TextInput.Icon icon="minus-circle" onPress={() => { setNegativeMonto(!negativeMonto) }}
+                        color={() => negativeMonto ? "red" : theme.colors.onSurfaceVariant} />}
                     render={props =>
                         <MaskedTextInput
                             {...props}
@@ -235,15 +259,17 @@ export default () => {
                     value={docTipoDocName}
                     right={<TextInput.Icon icon="chevron-down" onPress={() => { setShowTipoDocList(true) }} />}
                 />
-                <TextInput
-                    style={{ marginBottom: 5 }}
-                    label="Categoria"
-                    mode="flat"
-                    dense={true}
-                    editable={false}
-                    value={docCatName}
-                    right={<TextInput.Icon icon="chevron-down" onPress={() => { setShowCategoriaList(true) }} />}
-                />
+                {showCategoriaInput &&
+                    <TextInput
+                        style={{ marginBottom: 5 }}
+                        label="Categoria"
+                        mode="flat"
+                        dense={true}
+                        editable={false}
+                        value={docCatName}
+                        right={<TextInput.Icon icon="chevron-down" onPress={() => { setShowCategoriaList(true) }} />}
+                    />
+                }
 
             </ScrollView>
         </View>
