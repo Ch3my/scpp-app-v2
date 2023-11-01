@@ -13,7 +13,6 @@ import Swipeable from 'react-native-gesture-handler/Swipeable';
 export default () => {
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
-    const { paperTheme } = useContext(ScppThemeContext);
     const { sessionHash, apiPrefix } = useContext(ScppContext);
     const [assetList, setAssetList] = useState<Asset[]>([])
 
@@ -53,7 +52,8 @@ export default () => {
                 getData()
             })
             return () => task.cancel();
-        }, [useNavigation().isFocused()])
+        }, [])
+        // Para que no es necesario especificar nada en []
     );
 
     const rightSwipe = (progress: any, dragX: any, id: number) => {

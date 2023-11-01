@@ -46,7 +46,8 @@ export default () => {
             try {
                 const response: AxiosResponse<any> = await axios.get(apiPrefix + '/assets', {
                     params: {
-                        sessionHash
+                        sessionHash,
+                        id: [id]
                     }
                 });
                 if (response.data) {
@@ -169,6 +170,7 @@ export default () => {
                         <TouchableOpacity onPress={() => { setShowImgModal(true) }} style={appStyles.camera}>
                             <Image
                                 style={{ flex: 1 }}
+                                resizeMode="contain"
                                 source={{ uri: assetAssetData }} />
                         </TouchableOpacity>
                     }
