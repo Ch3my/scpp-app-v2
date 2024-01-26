@@ -15,14 +15,16 @@ const StackLayout = () => {
     const { paperTheme, navTheme, themeName } = useContext(ScppThemeContext);
 
     return (
-        <ThemeProvider value={navTheme}>
-            <PaperProvider theme={paperTheme}>
-                <StatusBar style={themeName == "dark" ? "light" : "dark"} />
-                <Stack>
-                    <Stack.Screen name="(tabs)" options={{ headerShown: false }}></Stack.Screen>
-                </Stack>
-            </PaperProvider>
-        </ThemeProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+            <ThemeProvider value={navTheme}>
+                <PaperProvider theme={paperTheme}>
+                    <StatusBar style={themeName == "dark" ? "light" : "dark"} />
+                    <Stack>
+                        <Stack.Screen name="(tabs)" options={{ headerShown: false }}></Stack.Screen>
+                    </Stack>
+                </PaperProvider>
+            </ThemeProvider>
+        </GestureHandlerRootView>
     )
 }
 
