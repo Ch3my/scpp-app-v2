@@ -1,89 +1,111 @@
-import {
-    useTheme, Text, Appbar,
-    Modal, Portal, IconButton
-} from 'react-native-paper';
-import {
-    StyleSheet, View, ScrollView, Dimensions,
-    InteractionManager
-} from 'react-native';
-import { Link, useNavigation, Redirect, Stack, router, useFocusEffect } from "expo-router";
-import { GetAppStyles } from "../../styles/styles"
-
-import LineChart from '../../components/ChartSVG/LineChart'
+import React, { useState, useContext, useCallback, useRef } from 'react';
+import { useTheme } from 'react-native-paper';
+import { ScrollView, Dimensions, InteractionManager, RefreshControl, View } from 'react-native';
+import { useFocusEffect } from "expo-router";
+import axios, { CancelTokenSource } from 'axios';
+import { ScppContext } from "../ScppContext";
+import LineChart from '../../components/ChartSVG/LineChart';
 import BarChart from '../../components/ChartSVG/BarChart';
-import axios, { AxiosResponse } from 'axios'
-import { ScppContext } from "../ScppContext"
-import numeral from 'numeral'
-import { useState, useContext, useCallback } from 'react';
+import DashboardDonut from '../../components/DashboardDonut';
 
-export default () => {
+const Dashboard = () => {
     const theme = useTheme();
-    const appStyles = GetAppStyles(theme)
     const { sessionHash, apiPrefix } = useContext(ScppContext);
+    const [refreshing, setRefreshing] = useState(false);
+    const [monthlyGraphData, setMonthlyGraphData] = useState<MonthlyGraphData>({
+        labels: [],
+        gastosDataset: [],
+        ingresosDataset: [],
+        ahorrosDataset: []
+    });
+    const [barChartData, setBarChartData] = useState<ExpensesByCategoryData>({
+        labels: [],
+        amounts: [],
+        data: []
+    });
 
-    const [monthlyGraphData, setMonthlyGraphData] = useState<MonthlyGraphData | null>(null);
-    const [barChartData, setBarChartData] = useState<ExpensesByCategoryData | null>(null);
+    const cancelTokenSourceRef = useRef<CancelTokenSource | null>(null);
 
-    const getMonthlyGraph = async () => {
-        const response: AxiosResponse<any> = await axios.get(apiPrefix + '/monthly-graph', {
-            params: {
-                sessionHash,
-                nMonths: 5
-            }
-        });
-        if (response.data) {
-            setMonthlyGraphData(response.data)
+    const fetchData = useCallback(async () => {
+        if (cancelTokenSourceRef.current) {
+            cancelTokenSourceRef.current.cancel('New request initiated');
         }
-    };
+        cancelTokenSourceRef.current = axios.CancelToken.source();
 
-    const getExpensesByCategory = async () => {
-        const response: AxiosResponse<any> = await axios.get(apiPrefix + '/expenses-by-category', {
-            params: {
-                sessionHash,
-                nMonths: 5
+        try {
+            const [monthlyGraphResponse, expensesByCategoryResponse] = await Promise.all([
+                axios.get<MonthlyGraphData>(`${apiPrefix}/monthly-graph`, {
+                    params: { sessionHash, nMonths: 5 },
+                    cancelToken: cancelTokenSourceRef.current.token
+                }),
+                axios.get<ExpensesByCategoryData>(`${apiPrefix}/expenses-by-category`, {
+                    params: { sessionHash, nMonths: 5 },
+                    cancelToken: cancelTokenSourceRef.current.token
+                })
+            ]);
+
+            setMonthlyGraphData(monthlyGraphResponse.data);
+            setBarChartData(expensesByCategoryResponse.data);
+        } catch (error) {
+            if (axios.isCancel(error)) {
+                console.log('Request canceled:', error.message);
+            } else {
+                console.error('Error fetching data:', error);
             }
-        });
-        if (response.data) {
-            setBarChartData(response.data)
         }
-    };
+    }, [apiPrefix, sessionHash]);
+
+    const onRefresh = useCallback(async () => {
+        setRefreshing(true);
+        await fetchData();
+        setRefreshing(false);
+    }, [fetchData]);
+
     useFocusEffect(
         useCallback(() => {
-            const task = InteractionManager.runAfterInteractions(() => {
-                getMonthlyGraph()
-                getExpensesByCategory()
-            })
-            return () => task.cancel();
-        }, [useNavigation().isFocused()])
+            const task = InteractionManager.runAfterInteractions(fetchData);
+            return () => {
+                task.cancel();
+                if (cancelTokenSourceRef.current) {
+                    cancelTokenSourceRef.current.cancel('Component unmounted');
+                }
+            };
+        }, [fetchData])
     );
 
-    return (
-        <ScrollView style={{flex:1, backgroundColor: theme.colors.background,}}>
-            {monthlyGraphData &&
-                <LineChart datasets={[{
-                    data: monthlyGraphData.gastosDataset,
-                    color: 'rgba(255, 99, 132, 1)'
-                }, {
-                    data: monthlyGraphData.ingresosDataset,
-                    color: 'rgba(4, 162, 235, 1)'
-                }, {
-                    data: monthlyGraphData.ahorrosDataset,
-                    color: 'rgba(255, 205, 86, 1)'
-                }]}
-                    totalWidth={Dimensions.get('window').width}
-                    totalHeight="250"
-                    labels={monthlyGraphData.labels}
-                    labelsColor={theme.colors.onBackground}
-                    yAxisPrefix='$ ' />
-            }
-            {barChartData &&
-                <BarChart dataset={barChartData.amounts}
-                    totalWidth={Dimensions.get('window').width}
-                    labels={barChartData.labels}
-                    labelsColor={theme.colors.onBackground}
-                    yAxisPrefix='$ ' />
-            }
+    const screenWidth = Dimensions.get('window').width;
 
+    return (
+        <ScrollView
+            style={{ flex: 1, backgroundColor: theme.colors.background }}
+            refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+        >
+            <LineChart
+                datasets={[
+                    { data: monthlyGraphData.gastosDataset, color: 'rgba(255, 99, 132, 1)' },
+                    { data: monthlyGraphData.ingresosDataset, color: 'rgba(4, 162, 235, 1)' },
+                    { data: monthlyGraphData.ahorrosDataset, color: 'rgba(255, 205, 86, 1)' }
+                ]}
+                totalWidth={screenWidth}
+                totalHeight={250}
+                labels={monthlyGraphData.labels}
+                labelsColor={theme.colors.onBackground}
+                yAxisPrefix='$ '
+            />
+            <View style={{ marginTop: 30 }}>
+                <DashboardDonut shouldRefresh={refreshing} />
+            </View>
+            <BarChart
+                dataset={barChartData.amounts}
+                totalWidth={screenWidth}
+                labels={barChartData.labels}
+                labelsColor={theme.colors.onBackground}
+                yAxisPrefix='$ '
+            />
         </ScrollView>
-    )
-}
+    );
+};
+
+export default Dashboard;

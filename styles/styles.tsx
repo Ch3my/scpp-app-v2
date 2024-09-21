@@ -9,8 +9,8 @@ export const GetAppStyles = (theme: any) => StyleSheet.create({
     btnRow: {
         flexDirection: "row",
         justifyContent: "flex-start",
-        backgroundColor: theme.colors.background, 
-        paddingVertical: 2, 
+        backgroundColor: theme.colors.background,
+        paddingVertical: 2,
         paddingHorizontal: 10
     },
     btnRowBtn: {
@@ -33,5 +33,8 @@ export const GetAppStyles = (theme: any) => StyleSheet.create({
         alignItems: 'flex-end',
         padding: 15,
         marginTop: 10
-      }
+    },
+    textFontSize: {
+        fontSize: 16
+    }
 });

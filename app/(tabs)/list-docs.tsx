@@ -399,9 +399,15 @@ export default () => {
                             key={item.id}
                             friction={1}>
                             <DataTable.Row>
-                                <DataTable.Cell style={{ flex: 0.5 }}>{item.fecha}</DataTable.Cell>
-                                <DataTable.Cell>{item.proposito}</DataTable.Cell>
-                                <DataTable.Cell style={{ flex: 0.5 }} numeric>{numeral(item.monto).format("0,0")}</DataTable.Cell>
+                                <DataTable.Cell style={{ flex: 0.6 }}>
+                                    <Text style={appStyles.textFontSize}>{item.fecha}</Text>
+                                </DataTable.Cell>
+                                <DataTable.Cell>
+                                    <Text style={appStyles.textFontSize}>{item.proposito}</Text>
+                                </DataTable.Cell>
+                                <DataTable.Cell style={{ flex: 0.6 }} numeric>
+                                    <Text style={appStyles.textFontSize}>{numeral(item.monto).format("0,0")}</Text>
+                                </DataTable.Cell>
                             </DataTable.Row>
                         </Swipeable>
                     ))}
@@ -412,7 +418,7 @@ export default () => {
                     }
                 </DataTable>
                 <View style={appStyles.totalDiv} >
-                    <Text>Total $ {numeral(sumaTotalDocs).format('0,0')}</Text>
+                    <Text style={appStyles.textFontSize}>Total $ {numeral(sumaTotalDocs).format('0,0')}</Text>
                 </View>
                 <View style={{ margin: 10 }}></View>
             </ScrollView>

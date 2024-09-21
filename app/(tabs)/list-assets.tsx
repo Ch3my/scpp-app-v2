@@ -163,8 +163,12 @@ export default () => {
                             key={item.id}
                             friction={1}>
                             <DataTable.Row>
-                                <DataTable.Cell style={{ flex: 0.5 }}>{item.fecha}</DataTable.Cell>
-                                <DataTable.Cell>{item.descripcion}</DataTable.Cell>
+                                <DataTable.Cell style={{ flex: 0.5 }}>
+                                    <Text style={appStyles.textFontSize}>{item.fecha}</Text>
+                                </DataTable.Cell>
+                                <DataTable.Cell>
+                                    <Text style={appStyles.textFontSize}>{item.descripcion}</Text>
+                                </DataTable.Cell>
                             </DataTable.Row>
                         </Swipeable>
                     ))}
