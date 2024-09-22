@@ -1,5 +1,5 @@
 import React, { useState, useContext, useCallback, useRef } from 'react';
-import { useTheme } from 'react-native-paper';
+import { useTheme, Text } from 'react-native-paper';
 import { ScrollView, Dimensions, InteractionManager, RefreshControl, View } from 'react-native';
 import { useFocusEffect } from "expo-router";
 import axios, { CancelTokenSource } from 'axios';
@@ -77,11 +77,12 @@ const Dashboard = () => {
 
     return (
         <ScrollView
-            style={{ flex: 1, backgroundColor: theme.colors.background }}
+            style={{ flex: 1, backgroundColor: theme.colors.background, paddingHorizontal: 15 }}
             refreshControl={
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
         >
+            <Text variant="titleLarge">Hístorico Financiero Mensual</Text>
             <LineChart
                 datasets={[
                     { data: monthlyGraphData.gastosDataset, color: 'rgba(255, 99, 132, 1)' },
@@ -94,16 +95,19 @@ const Dashboard = () => {
                 labelsColor={theme.colors.onBackground}
                 yAxisPrefix='$ '
             />
-            <View style={{ marginTop: 30 }}>
+            <View style={{ marginVertical: 15 }}>
                 <DashboardDonut shouldRefresh={refreshing} />
             </View>
-            <BarChart
-                dataset={barChartData.amounts}
-                totalWidth={screenWidth}
-                labels={barChartData.labels}
-                labelsColor={theme.colors.onBackground}
-                yAxisPrefix='$ '
-            />
+            <View style={{ marginBottom: 30 }}>
+                <Text variant="titleLarge" style={{ marginBottom: 10 }}>Resumen Categoría 12 Meses</Text>
+                <BarChart
+                    dataset={barChartData.amounts}
+                    totalWidth={screenWidth}
+                    labels={barChartData.labels}
+                    labelsColor={theme.colors.onBackground}
+                    yAxisPrefix='$ '
+                />
+            </View>
         </ScrollView>
     );
 };

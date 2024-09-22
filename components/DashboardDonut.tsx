@@ -11,7 +11,7 @@ import { GetAppStyles } from "../styles/styles"
 
 interface DashboardDonutProps {
     shouldRefresh: boolean;
-  }
+}
 
 const DashboardDonut: React.FC<DashboardDonutProps> = ({ shouldRefresh }) => {
     numeral.locale("es-es")
@@ -35,8 +35,8 @@ const DashboardDonut: React.FC<DashboardDonutProps> = ({ shouldRefresh }) => {
         }
     };
 
-    useEffect(()=> {
-        if(shouldRefresh) {
+    useEffect(() => {
+        if (shouldRefresh) {
             getData()
         }
     }, [shouldRefresh])
@@ -51,17 +51,20 @@ const DashboardDonut: React.FC<DashboardDonutProps> = ({ shouldRefresh }) => {
     );
 
     return (
-        <View style={styles.container}>
-            <View style={{ flex: 0.4 }}>
-                <DonutChart percentage={percentage} label='Gastado' size={150}></DonutChart>
-            </View>
-            <View style={{ flex: 0.6 }}>
-                {topGastos.map((item, index) => (
-                    <View key={index} style={{flexDirection: "row", justifyContent: "space-between" }}>
-                        <Text style={appStyles.textFontSize}>{item.proposito.slice(0, 12)}</Text>
-                        <Text style={appStyles.textFontSize}>$ {numeral(item.monto).format("0,0")}</Text>
-                    </View>
-                ))}
+        <View>
+            <Text variant="titleLarge" style={{marginBottom:10}}>Uso del Presupuesto Mes</Text>
+            <View style={styles.container}>
+                <View style={{ flex: 0.4 }}>
+                    <DonutChart percentage={percentage} label='Gastado' size={120}></DonutChart>
+                </View>
+                <View style={{ flex: 0.6 }}>
+                    {topGastos.map((item, index) => (
+                        <View key={index} style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                            <Text style={appStyles.textFontSize}>{item.proposito.slice(0, 14)}</Text>
+                            <Text style={appStyles.textFontSize}>$ {numeral(item.monto).format("0,0")}</Text>
+                        </View>
+                    ))}
+                </View>
             </View>
         </View>
     );
@@ -72,10 +75,7 @@ const styles = StyleSheet.create({
     container: {
         flexDirection: 'row', // Arrange children in a row
         justifyContent: 'space-between', // Distribute the columns with space between them
-        // alignItems: "center",
-        gap: 25,
-        paddingLeft: 30,
-        paddingRight: 20,
+        gap: 20,
     }
 });
 

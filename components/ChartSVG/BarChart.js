@@ -1,8 +1,6 @@
-import React, { useEffect } from 'react';
-import Svg, { G, Circle, Path, Line, Polyline, Text, Rect } from "react-native-svg";
-import {
-    View, Dimensions, StyleSheet
-} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import Svg, { G, Line, Text, Rect } from "react-native-svg";
+import { View, Dimensions } from 'react-native';
 import Animated, {
     useSharedValue,
     useAnimatedProps,
@@ -11,25 +9,33 @@ import Animated, {
 } from 'react-native-reanimated';
 import numeral from 'numeral';
 
-const SVGPADDING = 80;
-const SVGPADDINGTOP = 30;
-const SVGPADDINGLEFT = 120;
-const BARCONTAINERHEIGHT = 40;
-const BARHEIGHT = 30;
+const SVGPADDINGLEFT = 100;
+const SVGPADDINGRIGHT = 100;
 
 const AnimatedRect = Animated.createAnimatedComponent(Rect);
 
 const BarChart = props => {
-    let chartHeight = (props.labels ? props.labels.length : 0) * BARCONTAINERHEIGHT;
-    let chartWidth = props.totalWidth - 80;
+    const [dimensions, setDimensions] = useState(Dimensions.get('window'));
 
-    let labelsY = buildLabelsY(props.yAxisPrefix, props.labels, props.dataset, props.totalWidth, props.labelsColor);
+    useEffect(() => {
+        const subscription = Dimensions.addEventListener('change', ({ window }) => {
+            setDimensions(window);
+        });
+        return () => subscription?.remove();
+    });
+
+    const chartWidth = dimensions.width - SVGPADDINGLEFT - SVGPADDINGRIGHT;
+    const barHeight = 20;
+    const barContainerHeight = barHeight * 1.5;
+    const chartHeight = barContainerHeight * props.labels.length;
+
+    let labelsY = buildLabelsY(props.yAxisPrefix, props.labels, props.dataset, dimensions.width, props.labelsColor, barContainerHeight);
     let lines = buildLinesXY(chartWidth, chartHeight, props.labelsColor);
-    let bars = buildBars(props.dataset, chartWidth);
+    let bars = buildBars(props.dataset, chartWidth, barHeight, barContainerHeight);
 
     return (
         <View>
-            <Svg height={chartHeight + SVGPADDING} width={props.totalWidth}>
+            <Svg height={chartHeight} width={dimensions.width}>
                 {lines}
                 {labelsY}
                 {bars}
@@ -40,34 +46,35 @@ const BarChart = props => {
 
 const buildLinesXY = (chartWidth, chartHeight, labelsColor) => {
     return (
-        <Svg>
-            <Line x1={SVGPADDINGLEFT} x2={chartWidth + 25} y={chartHeight + SVGPADDINGTOP} strokeWidth="1" stroke={labelsColor} />
-            <Line y1={chartHeight + SVGPADDINGTOP} y2={0 + SVGPADDINGTOP} x={SVGPADDINGLEFT} strokeWidth="1" stroke={labelsColor} />
-        </Svg>
+        <G>
+            <Line x1={SVGPADDINGLEFT} x2={chartWidth + SVGPADDINGLEFT} y1={chartHeight} y2={chartHeight} strokeWidth="1" stroke={labelsColor} />
+            <Line y1={chartHeight} y2={0} x1={SVGPADDINGLEFT} x2={SVGPADDINGLEFT} strokeWidth="1" stroke={labelsColor} />
+        </G>
     );
 };
 
-const buildLabelsY = (yAxisPrefix, labels, dataset, totalWidth, labelsColor) => {
+const buildLabelsY = (yAxisPrefix, labels, dataset, totalWidth, labelsColor, barContainerHeight) => {
     if (!labels || labels.length === 0) {
-        return null; // or return an empty array []
+        return null;
     }
     return labels.map((l, index) => {
-        const yCordinate = (BARCONTAINERHEIGHT * index) + SVGPADDINGTOP + 20;
+        const yCordinate = (barContainerHeight * index) + (barContainerHeight / 2);
         return (
             <G key={index}>
-                <Text x={15} y={yCordinate} textAnchor="start"
-                    stroke={labelsColor} fontWeight="100">{l}</Text>
-                <Text x={totalWidth - 15} y={yCordinate} textAnchor="end"
-                    stroke={labelsColor} fontWeight="100">{yAxisPrefix + numeral(dataset[index]).format('0,0')}</Text>
+                <Text y={yCordinate} textAnchor="start"
+                    stroke={labelsColor} fontWeight="100" fontSize="12">{l}</Text>
+                <Text x={totalWidth - SVGPADDINGRIGHT + 60} y={yCordinate} textAnchor="end"
+                    stroke={labelsColor} fontWeight="100" fontSize="12">{yAxisPrefix + numeral(dataset[index]).format('0,0')}</Text>
             </G>
         );
     });
 };
 
-const AnimatedBar = ({ x, y, maxWidth, value, maxValue, fill }) => {
+const AnimatedBar = ({ x, y, maxWidth, value, maxValue, fill, height }) => {
     const width = useSharedValue(0);
 
     useEffect(() => {
+        width.value = 0 // Without this bars dessapear on hot reload 
         width.value = withTiming(maxWidth * (value / maxValue), {
             duration: 1000,
             easing: Easing.out(Easing.cubic),
@@ -83,36 +90,35 @@ const AnimatedBar = ({ x, y, maxWidth, value, maxValue, fill }) => {
             x={x}
             y={y}
             fill={fill}
-            height={BARHEIGHT}
+            height={height}
             animatedProps={animatedProps}
         />
     );
 };
 
-const buildBars = (dataset = [], chartWidth) => {
+const buildBars = (dataset = [], chartWidth, barHeight, barContainerHeight) => {
     if (!dataset || dataset.length === 0) {
-        return null; // or return an empty array []
+        return null;
     }
-    const maxBarWidth = chartWidth - SVGPADDINGLEFT;
+    const maxBarWidth = chartWidth - 10;
     const maxValueDataset = Math.max(...dataset);
 
     return dataset.map((d, index) => {
-        const yCordinate = (BARCONTAINERHEIGHT * index) + SVGPADDINGTOP;
-
+        const yCordinate = (barContainerHeight * index) + ((barContainerHeight - barHeight) / 2);
+        // x={SVGPADDINGLEFT +1} el 1 es para que no quede la barra montada en la linea
         return (
             <AnimatedBar
                 key={index}
-                x={SVGPADDINGLEFT}
+                x={SVGPADDINGLEFT +1}
                 y={yCordinate}
                 maxWidth={maxBarWidth}
                 value={d}
                 maxValue={maxValueDataset}
                 fill='#75c2be'
+                height={barHeight}
             />
         );
     });
 };
-
-const styles = StyleSheet.create({});
 
 export default BarChart;
