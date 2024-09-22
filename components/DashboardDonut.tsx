@@ -30,7 +30,7 @@ const DashboardDonut: React.FC<DashboardDonutProps> = ({ shouldRefresh }) => {
         if (response.data) {
             setPercentage(response.data.porcentajeUsado)
             if (response.data.topGastos) {
-                setTopGastos(response.data.topGastos.slice(0, 6) || [])
+                setTopGastos(response.data.topGastos.slice(0, 5) || [])
             }
         }
     };

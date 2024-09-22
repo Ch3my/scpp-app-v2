@@ -9,8 +9,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import numeral from 'numeral';
 
-const SVGPADDINGLEFT = 100;
-const SVGPADDINGRIGHT = 100;
+const SVGPADDINGLEFT = 90;
+const SVGPADDINGRIGHT = 90;
 
 const AnimatedRect = Animated.createAnimatedComponent(Rect);
 
@@ -59,12 +59,18 @@ const buildLabelsY = (yAxisPrefix, labels, dataset, totalWidth, labelsColor, bar
     }
     return labels.map((l, index) => {
         const yCordinate = (barContainerHeight * index) + (barContainerHeight / 2);
+        // Poner el <Text dentro de una View fue necesario para poder controlar el FontWeight
+        // Wrapping the Text components in a View might affect how React Native lays out the text and could reduce rendering issues:
         return (
             <G key={index}>
-                <Text y={yCordinate} textAnchor="start"
-                    stroke={labelsColor} fontWeight="100" fontSize="12">{l}</Text>
-                <Text x={totalWidth - SVGPADDINGRIGHT + 60} y={yCordinate} textAnchor="end"
-                    stroke={labelsColor} fontWeight="100" fontSize="12">{yAxisPrefix + numeral(dataset[index]).format('0,0')}</Text>
+                <View>
+                    <Text y={yCordinate} textAnchor="start"
+                        fill={labelsColor} fontWeight="400" fontSize={14}>{l.slice(0, 12)}</Text>
+                </View>
+                <View>
+                    <Text x={totalWidth - SVGPADDINGRIGHT + 60} y={yCordinate} textAnchor="end"
+                        fill={labelsColor} fontWeight="400" fontSize={14}>{yAxisPrefix + numeral(dataset[index]).format('0,0')}</Text>
+                </View>
             </G>
         );
     });
@@ -100,7 +106,7 @@ const buildBars = (dataset = [], chartWidth, barHeight, barContainerHeight) => {
     if (!dataset || dataset.length === 0) {
         return null;
     }
-    const maxBarWidth = chartWidth - 10;
+    const maxBarWidth = chartWidth - 20;
     const maxValueDataset = Math.max(...dataset);
 
     return dataset.map((d, index) => {
@@ -109,7 +115,7 @@ const buildBars = (dataset = [], chartWidth, barHeight, barContainerHeight) => {
         return (
             <AnimatedBar
                 key={index}
-                x={SVGPADDINGLEFT +1}
+                x={SVGPADDINGLEFT + 1}
                 y={yCordinate}
                 maxWidth={maxBarWidth}
                 value={d}

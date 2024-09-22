@@ -95,7 +95,7 @@ const Dashboard = () => {
                 labelsColor={theme.colors.onBackground}
                 yAxisPrefix='$ '
             />
-            <View style={{ marginVertical: 15 }}>
+            <View style={{ marginVertical: 10 }}>
                 <DashboardDonut shouldRefresh={refreshing} />
             </View>
             <View style={{ marginBottom: 30 }}>

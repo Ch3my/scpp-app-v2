@@ -1,8 +1,6 @@
-import React, { useEffect } from 'react';
-import Svg, { G, Circle, Path, Line, Polyline, Text } from "react-native-svg";
-import {
-    View, StyleSheet
-} from 'react-native';
+import React, { useEffect, useMemo } from 'react';
+import Svg, { G, Circle, Path, Line, Text } from "react-native-svg";
+import { View } from 'react-native';
 import Animated, {
     useSharedValue,
     useAnimatedProps,
@@ -11,94 +9,109 @@ import Animated, {
 } from 'react-native-reanimated';
 import numeral from 'numeral';
 
-const SVGPADDINGLEFT = 80;
-const SVGPADDINGTOP = 25;
-const YAXISDIVISIONS = 4;
-
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
-const LineChart = props => {
-    let chartHeight = props.totalHeight - 80;
-    let chartWidth = props.totalWidth - 80;
+const PADDING = {
+    LEFT: 80,
+    RIGHT: 40, // Increased right padding to prevent cutoff
+    TOP: 25,
+    BOTTOM: 55
+};
+const Y_AXIS_DIVISIONS = 4;
+const ANIMATION_DURATION = 1000;
+const DOT_RADIUS = 4;
+const STROKE_WIDTH = 1;
+const X_LABEL_OFFSET = 10; // New constant for x-label offset
 
-    let higherPoint = Math.max(0, ...props.datasets.flatMap(d => d.data));
+const LineChart = ({ totalHeight, totalWidth, datasets, labels, labelsColor, yAxisPrefix }) => {
+    const chartHeight = totalHeight - PADDING.TOP - PADDING.BOTTOM;
+    const chartWidth = totalWidth - PADDING.LEFT - PADDING.RIGHT;
+    const higherPoint = Math.max(0, ...datasets.flatMap(d => d.data));
 
-    let paths = buildPaths(chartHeight, chartWidth, props.datasets, higherPoint);
-    let dots = buildDots(chartHeight, chartWidth, props.datasets, higherPoint);
-
-    let labelsX = buildLabelsX(chartWidth, chartHeight, props.labels, props.labelsColor);
-    let labelsY = buildLabelsY(chartHeight, higherPoint, props.yAxisPrefix, props.labelsColor);
-    let lines = buildLinesXY(chartWidth, chartHeight, props.labelsColor);
+    const memoizedComponents = useMemo(() => {
+        const paths = buildPaths(chartHeight, chartWidth, datasets, higherPoint);
+        const dots = buildDots(chartHeight, chartWidth, datasets, higherPoint);
+        const labelsX = buildLabelsX(chartWidth, chartHeight, labels, labelsColor);
+        const labelsY = buildLabelsY(chartHeight, higherPoint, yAxisPrefix, labelsColor);
+        const lines = buildLinesXY(chartWidth, chartHeight, labelsColor);
+        return { paths, dots, labelsX, labelsY, lines };
+    }, [chartHeight, chartWidth, datasets, higherPoint, labels, labelsColor, yAxisPrefix]);
 
     return (
         <View>
-            <Svg height={props.totalHeight} width={props.totalWidth}>
-                {lines}
-                {paths}
-                {labelsX}
-                {labelsY}
-                {dots}
+            <Svg height={totalHeight} width={totalWidth}>
+                {memoizedComponents.lines}
+                {memoizedComponents.paths}
+                {memoizedComponents.labelsX}
+                {memoizedComponents.labelsY}
+                {memoizedComponents.dots}
             </Svg>
         </View>
     );
 };
 
-const buildLinesXY = (chartWidth, chartHeight, labelsColor) => {
-    return (
-        <Svg>
-            <Line x1={SVGPADDINGLEFT} x2={chartWidth + 25} y={chartHeight + SVGPADDINGTOP} strokeWidth="1" stroke={labelsColor} />
-            <Line y1={chartHeight + SVGPADDINGTOP} y2={0 + SVGPADDINGTOP} x={SVGPADDINGLEFT} strokeWidth="1" stroke={labelsColor} />
-        </Svg>
-    );
-};
+const buildLinesXY = (chartWidth, chartHeight, labelsColor) => (
+    <G>
+        <Line x1={PADDING.LEFT} x2={chartWidth + PADDING.LEFT} y1={chartHeight + PADDING.TOP} y2={chartHeight + PADDING.TOP} strokeWidth={STROKE_WIDTH} stroke={labelsColor} />
+        <Line x1={PADDING.LEFT} x2={PADDING.LEFT} y1={chartHeight + PADDING.TOP} y2={PADDING.TOP} strokeWidth={STROKE_WIDTH} stroke={labelsColor} />
+    </G>
+);
 
 const buildLabelsX = (chartWidth, chartHeight, labels = [], labelsColor) => {
-    // Ensure xSeparation is safe even if labels array is empty
-    let xSeparation = labels.length > 0 ? Math.floor(chartWidth / labels.length) : chartWidth;
-    let yCordinate = (chartHeight + SVGPADDINGTOP) + 25;
+    const xSeparation = labels.length > 1 ? chartWidth / (labels.length - 1) : chartWidth;
+    const yCordinate = chartHeight + PADDING.TOP + 30;
 
-    // If labels is undefined or empty, this will return an empty array
-    return labels.map((l, index) => {
-        let xCordinate = SVGPADDINGLEFT + (xSeparation * index);
+    return labels.map((label, index) => {
+        const xCordinate = PADDING.LEFT + (xSeparation * index) - X_LABEL_OFFSET; // Subtract X_LABEL_OFFSET here
         return (
-            <Text key={index} x={xCordinate} y={yCordinate}
-                stroke={labelsColor} fontWeight="100" textAnchor="middle"
-                rotation={-30} originX={xCordinate} originY={yCordinate}>
-                {l}
+            <Text
+                key={index}
+                x={xCordinate}
+                y={yCordinate}
+                fill={labelsColor}
+                fontWeight="400"
+                textAnchor="middle"
+                fontSize={14}
+                rotation={-30}
+                originX={xCordinate}
+                originY={yCordinate}
+            >
+                {label}
             </Text>
         );
     });
 };
 
-
 const buildLabelsY = (chartHeight, higherPoint, yAxisPrefix, labelsColor) => {
-    let step = higherPoint / YAXISDIVISIONS;
-    let labelValues = Array.from({length: YAXISDIVISIONS}, (_, i) => Math.round(step * i));
-    let xCordinate = SVGPADDINGLEFT - 5;
-    let ySeparation = Math.floor(chartHeight / YAXISDIVISIONS);
+    const step = higherPoint / Y_AXIS_DIVISIONS;
+    const labelValues = Array.from({ length: Y_AXIS_DIVISIONS + 1 }, (_, i) => Math.round(step * i));
+    const xCordinate = PADDING.LEFT - 7;
+    const ySeparation = chartHeight / Y_AXIS_DIVISIONS;
 
-    let labels = labelValues.map((l, index) => {
-        let yCordinate = index === 0 ? chartHeight + SVGPADDINGTOP : (chartHeight + SVGPADDINGTOP) - ySeparation * index;
+    return labelValues.map((value, index) => {
+        const yCordinate = chartHeight + PADDING.TOP - ySeparation * index;
         return (
-            <Text x={xCordinate} y={yCordinate} textAnchor="end" key={index}
-                stroke={labelsColor} fontWeight="100">{yAxisPrefix + numeral(l).format('0,0')}</Text>
+            <Text
+                key={index}
+                x={xCordinate}
+                y={yCordinate}
+                textAnchor="end"
+                fontSize={14}
+                fill={labelsColor}
+                fontWeight="400"
+            >
+                {yAxisPrefix + numeral(value).format('0,0')}
+            </Text>
         );
     });
-
-    labels.push(
-        <Text key={YAXISDIVISIONS + 1} x={xCordinate} y={(chartHeight + SVGPADDINGTOP) - ySeparation * YAXISDIVISIONS + 1} textAnchor="end"
-            stroke={labelsColor} fontWeight="100">{yAxisPrefix + numeral(higherPoint).format('0,0')}</Text>
-    );
-
-    return labels;
 };
 
 const AnimatedLine = ({ d, color }) => {
     const progress = useSharedValue(0);
 
     useEffect(() => {
-        progress.value = withTiming(1, { duration: 1000, easing: Easing.out(Easing.cubic) });
+        progress.value = withTiming(1, { duration: ANIMATION_DURATION, easing: Easing.out(Easing.cubic) });
     }, []);
 
     const animatedProps = useAnimatedProps(() => ({
@@ -110,78 +123,63 @@ const AnimatedLine = ({ d, color }) => {
             d={d}
             fill="none"
             stroke={color}
-            strokeWidth="2"
+            strokeWidth={STROKE_WIDTH}
             strokeDasharray={1000}
             animatedProps={animatedProps}
         />
     );
 };
 
-const buildPaths = (totalHeight, totalWidth, datasets, higherPoint) => {
+const buildPaths = (chartHeight, chartWidth, datasets, higherPoint) => {
     return datasets.map((dataset, index) => {
-        let d = buildPathD(totalHeight, totalWidth, dataset.data, higherPoint);
-        return (
-            <AnimatedLine key={index} d={d} color={dataset.color} />
-        );
+        const d = buildPathD(chartHeight, chartWidth, dataset.data, higherPoint);
+        return <AnimatedLine key={index} d={d} color={dataset.color} />;
     });
 };
 
-const AnimatedDot = ({ cx, cy, r, fill }) => {
+const AnimatedDot = ({ cx, cy, fill }) => {
     const scale = useSharedValue(0);
 
     useEffect(() => {
-        scale.value = withTiming(1, { duration: 1000, easing: Easing.out(Easing.cubic) });
+        scale.value = withTiming(1, { duration: ANIMATION_DURATION, easing: Easing.out(Easing.cubic) });
     }, []);
 
     const animatedProps = useAnimatedProps(() => ({
-        r: r * scale.value,
+        r: DOT_RADIUS * scale.value,
     }));
 
-    return (
-        <AnimatedCircle
-            cx={cx}
-            cy={cy}
-            fill={fill}
-            animatedProps={animatedProps}
-        />
-    );
+    return <AnimatedCircle cx={cx} cy={cy} fill={fill} animatedProps={animatedProps} />;
 };
 
 const buildDots = (chartHeight, chartWidth, datasets, higherPoint) => {
     return datasets.flatMap((dataset, datasetIndex) => {
-        let pointCoordinates = buildPointsCordinates(chartHeight, chartWidth, dataset.data, higherPoint);
+        const pointCoordinates = buildPointCoordinates(chartHeight, chartWidth, dataset.data, higherPoint);
         return pointCoordinates.map((p, pointIndex) => (
             <AnimatedDot
                 key={`${datasetIndex}-${pointIndex}`}
                 cx={p.x}
                 cy={p.y}
-                r={4}
                 fill={dataset.color}
             />
         ));
     });
 };
 
-const buildPointsCordinates = (chartHeight, chartWidth, dataset = [], higherPoint) => {
-    // Ensure xSeparation defaults to 0 if dataset is empty
-    let xSeparation = dataset.length > 0 ? Math.floor(chartWidth / dataset.length) : 0;
-    let yRatio = higherPoint / chartHeight;
+const buildPointCoordinates = (chartHeight, chartWidth, dataset = [], higherPoint) => {
+    const xSeparation = dataset.length > 1 ? chartWidth / (dataset.length - 1) : chartWidth;
+    const yRatio = higherPoint / chartHeight;
 
-    // If dataset is empty or undefined, this will return an empty array
-    return dataset.map((p, index) => ({
-        x: (index * xSeparation) + SVGPADDINGLEFT,
-        y: (chartHeight - (p / yRatio)) + SVGPADDINGTOP
+    return dataset.map((point, index) => ({
+        x: (index * xSeparation) + PADDING.LEFT,
+        y: (chartHeight - (point / yRatio)) + PADDING.TOP
     }));
 };
 
-
-const buildPathD = (totalHeight, totalWidth, dataset, higherPoint) => {
-    let pointCoordinates = buildPointsCordinates(totalHeight, totalWidth, dataset, higherPoint);
-    return pointCoordinates.reduce((d, p, index) => 
-        index === 0 ? `M${p.x} ${p.y}` : `${d} L${p.x} ${p.y}`, 
-    '');
+const buildPathD = (chartHeight, chartWidth, dataset, higherPoint) => {
+    const pointCoordinates = buildPointCoordinates(chartHeight, chartWidth, dataset, higherPoint);
+    return pointCoordinates.reduce((d, p, index) =>
+        index === 0 ? `M${p.x} ${p.y}` : `${d} L${p.x} ${p.y}`,
+        '');
 };
-
-const styles = StyleSheet.create({});
 
 export default LineChart;
