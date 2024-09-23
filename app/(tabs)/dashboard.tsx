@@ -82,7 +82,7 @@ const Dashboard = () => {
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
         >
-            <Text variant="titleLarge">Hístorico Financiero Mensual</Text>
+            <Text variant="titleLarge">Histórico Financiero Mensual</Text>
             <LineChart
                 datasets={[
                     { data: monthlyGraphData.gastosDataset, color: 'rgba(255, 99, 132, 1)' },
@@ -95,7 +95,7 @@ const Dashboard = () => {
                 labelsColor={theme.colors.onBackground}
                 yAxisPrefix='$ '
             />
-            <View style={{ marginVertical: 10 }}>
+            <View style={{ marginTop: 10, marginBottom: 20 }}>
                 <DashboardDonut shouldRefresh={refreshing} />
             </View>
             <View style={{ marginBottom: 30 }}>

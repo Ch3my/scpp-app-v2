@@ -22,6 +22,7 @@ const Y_AXIS_DIVISIONS = 4;
 const ANIMATION_DURATION = 1000;
 const DOT_RADIUS = 4;
 const STROKE_WIDTH = 1;
+const STROKE_WIDTH_LINE = 2;
 const X_LABEL_OFFSET = 10; // New constant for x-label offset
 
 const LineChart = ({ totalHeight, totalWidth, datasets, labels, labelsColor, yAxisPrefix }) => {
@@ -123,7 +124,7 @@ const AnimatedLine = ({ d, color }) => {
             d={d}
             fill="none"
             stroke={color}
-            strokeWidth={STROKE_WIDTH}
+            strokeWidth={STROKE_WIDTH_LINE}
             strokeDasharray={1000}
             animatedProps={animatedProps}
         />
