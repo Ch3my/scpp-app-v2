@@ -1,14 +1,13 @@
-import { ScrollView, View, Animated, InteractionManager } from "react-native"
+import { ScrollView, View, InteractionManager } from "react-native"
 import { Link, useNavigation, Stack, router, useFocusEffect } from "expo-router";
 import { IconButton, useTheme, DataTable, Text, Portal, Dialog, Button } from 'react-native-paper';
 import { GetAppStyles } from "../../styles/styles"
 import { useEffect, useState, useCallback, useContext } from 'react';
 import axios, { AxiosResponse } from 'axios'
 import { ScppContext } from "../ScppContext"
-import { ScppThemeContext } from '../ScppThemeContext';
 
-// https://software-mansion.github.io/react-native-gesture-handler/docs/component-swipeable.html
-import Swipeable from 'react-native-gesture-handler/Swipeable';
+import Reanimated, { Extrapolation, interpolate, useAnimatedStyle } from "react-native-reanimated";
+import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 
 export default () => {
     const theme = useTheme();
@@ -58,27 +57,41 @@ export default () => {
 
     const rightSwipe = (progress: any, dragX: any, id: number) => {
         // outputRange: [100, 1] contiene el largo del item
-        const translateEdit = progress.interpolate({
-            inputRange: [0, 1],
-            outputRange: [50, 1],
-            extrapolate: 'clamp',
+        const editStyle = useAnimatedStyle(() => {
+            const translateX = interpolate(
+                progress.value,
+                [0, 1],
+                [50, 1],
+                Extrapolation.CLAMP
+            );
+            return {
+                transform: [{ translateX }],
+                backgroundColor: theme.colors.secondary,
+                justifyContent: 'center',
+                alignItems: 'center',
+            };
         });
-        const translateDelete = progress.interpolate({
-            inputRange: [0, 1],
-            outputRange: [100, 1],
-            extrapolate: 'clamp',
+    
+        const deleteStyle = useAnimatedStyle(() => {
+            const translateX = interpolate(
+                progress.value,
+                [0, 1],
+                [100, 1],
+                Extrapolation.CLAMP
+            );
+            return {
+                transform: [{ translateX }],
+                backgroundColor: theme.colors.error,
+                justifyContent: 'center',
+                alignItems: 'center',
+            };
         });
         const editAction = () => {
             router.push("/assets/edit/" + id)
         }
         return (
-            <View style={{ flexDirection: 'row', width: 100 }}>
-                <Animated.View style={{
-                    backgroundColor: theme.colors.error,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    transform: [{ translateX: translateDelete }]
-                }}>
+            <Reanimated.View style={{ flexDirection: 'row', width: 100 }}>
+                <Reanimated.View style={deleteStyle}>
                     <IconButton
                         style={appStyles.btnRowBtn}
                         icon="delete"
@@ -88,20 +101,15 @@ export default () => {
                             setSelectedId(id)
                         }}
                     />
-                </Animated.View>
-                <Animated.View style={{
-                    backgroundColor: theme.colors.secondary,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    transform: [{ translateX: translateEdit }]
-                }}>
+                </Reanimated.View>
+                <Reanimated.View style={editStyle}>
                     <IconButton
                         icon="eye"
                         iconColor={theme.colors.onSecondary}
                         onPress={() => { editAction() }}
                     />
-                </Animated.View>
-            </View>
+                </Reanimated.View>
+            </Reanimated.View>
         )
     }
 
@@ -158,7 +166,7 @@ export default () => {
                         </DataTable.Row>
                     }
                     {!getAssetsApiCalling && assetList.map((item) => (
-                        <Swipeable
+                        <ReanimatedSwipeable
                             renderRightActions={(progress, dragX) => rightSwipe(progress, dragX, item.id)}
                             key={item.id}
                             friction={1}>
@@ -170,7 +178,7 @@ export default () => {
                                     <Text style={appStyles.textFontSize}>{item.descripcion}</Text>
                                 </DataTable.Cell>
                             </DataTable.Row>
-                        </Swipeable>
+                        </ReanimatedSwipeable>
                     ))}
                     {(assetList.length == 0 && !getAssetsApiCalling) &&
                         <DataTable.Row>

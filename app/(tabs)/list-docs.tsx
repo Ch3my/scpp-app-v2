@@ -1,18 +1,17 @@
-import { ScrollView, View, Animated, InteractionManager, FlatList } from "react-native"
-import { Link, useNavigation, Redirect, Stack, router, useFocusEffect } from "expo-router";
+import { ScrollView, View, InteractionManager, FlatList } from "react-native"
+import { Link, useNavigation, Stack, router, useFocusEffect } from "expo-router";
 import { IconButton, useTheme, DataTable, Text, TextInput, Portal, Dialog, List, Button } from 'react-native-paper';
 import { GetAppStyles } from "../../styles/styles"
-import { useEffect, useState, useRef, useContext, useCallback, SetStateAction } from 'react';
+import { useEffect, useState, useContext, useCallback } from 'react';
 import axios, { AxiosResponse } from 'axios'
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { ScppContext } from "../ScppContext"
-import { ScppThemeContext } from '../ScppThemeContext';
 import { DateTime } from "luxon";
 import numeral from "numeral"
 import "numeral/locales/es-es";
 
-// https://software-mansion.github.io/react-native-gesture-handler/docs/component-swipeable.html
-import Swipeable from 'react-native-gesture-handler/Swipeable';
+import Reanimated, { Extrapolation, interpolate, useAnimatedStyle } from "react-native-reanimated";
+import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 
 export default () => {
     numeral.locale("es-es")
@@ -197,17 +196,36 @@ export default () => {
     }
 
     const rightSwipe = (progress: any, dragX: any, id: number) => {
-        // outputRange: [100, 1] contiene el largo del item
-        const translateEdit = progress.interpolate({
-            inputRange: [0, 1],
-            outputRange: [50, 1],
-            extrapolate: 'clamp',
+        const editStyle = useAnimatedStyle(() => {
+            const translateX = interpolate(
+                progress.value,
+                [0, 1],
+                [50, 1],
+                Extrapolation.CLAMP
+            );
+            return {
+                transform: [{ translateX }],
+                backgroundColor: theme.colors.secondary,
+                justifyContent: 'center',
+                alignItems: 'center',
+            };
         });
-        const translateDelete = progress.interpolate({
-            inputRange: [0, 1],
-            outputRange: [100, 1],
-            extrapolate: 'clamp',
+    
+        const deleteStyle = useAnimatedStyle(() => {
+            const translateX = interpolate(
+                progress.value,
+                [0, 1],
+                [100, 1],
+                Extrapolation.CLAMP
+            );
+            return {
+                transform: [{ translateX }],
+                backgroundColor: theme.colors.error,
+                justifyContent: 'center',
+                alignItems: 'center',
+            };
         });
+        
         const editAction = () => {
             router.push("/docs/edit/" + id)
         }
@@ -221,33 +239,23 @@ export default () => {
         }
 
         return (
-            <View style={{ flexDirection: 'row', width: 100 }}>
-                <Animated.View style={{
-                    backgroundColor: theme.colors.error,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    transform: [{ translateX: translateDelete }]
-                }}>
+            <Reanimated.View style={{ flexDirection: 'row', width: 100 }}>
+                <Reanimated.View style={deleteStyle}>
                     <IconButton
                         style={appStyles.btnRowBtn}
                         icon="delete"
                         iconColor={theme.colors.onError}
                         onPress={() => { deleteDoc() }}
                     />
-                </Animated.View>
-                <Animated.View style={{
-                    backgroundColor: theme.colors.secondary,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    transform: [{ translateX: translateEdit }]
-                }}>
+                </Reanimated.View>
+                <Reanimated.View style={editStyle}>
                     <IconButton
                         icon="file-edit"
                         iconColor={theme.colors.onSecondary}
                         onPress={() => { editAction() }}
                     />
-                </Animated.View>
-            </View>
+                </Reanimated.View>
+            </Reanimated.View>
         )
     }
 
@@ -394,11 +402,12 @@ export default () => {
                         </DataTable.Row>
                     }
                     {!getDocsApiCalling && docsList.map((item) => (
-                        <Swipeable
+                        <ReanimatedSwipeable
                             renderRightActions={(progress, dragX) => rightSwipe(progress, dragX, item.id)}
                             key={item.id}
-                            friction={1}>
-                            <DataTable.Row>
+                            friction={1}
+                            >
+                            <DataTable.Row style={{backgroundColor: theme.colors.background}}>
                                 <DataTable.Cell style={{ flex: 0.6 }}>
                                     <Text style={appStyles.textFontSize}>{item.fecha}</Text>
                                 </DataTable.Cell>
@@ -409,7 +418,7 @@ export default () => {
                                     <Text style={appStyles.textFontSize}>{numeral(item.monto).format("0,0")}</Text>
                                 </DataTable.Cell>
                             </DataTable.Row>
-                        </Swipeable>
+                        </ReanimatedSwipeable>
                     ))}
                     {(docsList.length == 0 && !getDocsApiCalling) &&
                         <DataTable.Row>
