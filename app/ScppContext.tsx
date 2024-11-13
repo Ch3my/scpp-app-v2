@@ -52,3 +52,5 @@ export const ScppProvider: React.FC<ScppProviderProps> = ({
         </ScppContext.Provider>
     );
 };
+
+export default ScppProvider

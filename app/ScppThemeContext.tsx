@@ -59,3 +59,5 @@ export const ScppThemeProvider: React.FC<ScppThemeProviderProps> = ({
     </ScppThemeContext.Provider>
   );
 };
+
+export default ScppThemeProvider
