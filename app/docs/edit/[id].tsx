@@ -142,7 +142,7 @@ export default () => {
             monto: computedMonto,
             fk_tipoDoc: docTipoDocId
         }
-        if(docTipoDocId != 1) {
+        if (docTipoDocId != 1) {
             apiArgs.fk_categoria = null
         }
         let response = await axios.put(apiPrefix + '/documentos', apiArgs)
@@ -158,13 +158,15 @@ export default () => {
     return (
         <View style={{ flex: 1 }} >
             <Stack.Screen options={{ headerTitle: "Editar Documento" }} />
-            <Snackbar
-                duration={2500}
-                visible={showSnackBar}
-                style={{ zIndex: 999 }}
-                onDismiss={() => { setShowSnackBar(false) }}>
-                {snackbarMsg}
-            </Snackbar>
+            <Portal>
+                <Snackbar
+                    duration={2500}
+                    visible={showSnackBar}
+                    style={{ zIndex: 999 }}
+                    onDismiss={() => { setShowSnackBar(false) }}>
+                    {snackbarMsg}
+                </Snackbar>
+            </Portal>
             <Portal>
                 <Dialog visible={showCategoriaList} onDismiss={() => { setShowCategoriaList(false) }} style={{ height: '80%' }}>
                     <Dialog.Title>Categoria</Dialog.Title>

@@ -120,13 +120,12 @@ export default () => {
         return [newFecIni, newFecTer]
     }
 
-    const getData = async (aFechaInicio: DateTime | null,
+    const getData = useCallback(async (aFechaInicio: DateTime | null,
         aFechaTermino: DateTime | null,
         afk_tipoDoc: number | null,
         afk_categoria: number | null) => {
         // Si vienen argumentos usamos argumentos, sino usamos el estado
         // como se hace queue de los setState el argumento (si existe) esta mas actualizado el que State
-        setSumaTotalDocs(0)
         setGetDocsApiCalling(true)
 
         let localFechaInicio = fechaInicio
@@ -168,7 +167,16 @@ export default () => {
             console.log(error);
         }
         setGetDocsApiCalling(false)
-    }
+    }, [
+        fechaInicio,
+        fechaTermino,
+        tipoDocFilterId,
+        categoriaFilterId,
+        searchPhrase,
+        sessionHash,
+        apiPrefix,
+    ]
+    );
 
     const onUpdateCategoria = ({ id, descripcion }: { id: number | null, descripcion: string }) => {
         setCategoriaFilterId(id)
@@ -182,20 +190,25 @@ export default () => {
         setShowTipoDocFilter(false)
         getData(newFecIni, newFecTer, id, null)
     }
-    const onChangeFechaIniFilter = (event: any, selectedDate?: Date) => {
+    const onChangeFechaIniFilter = useCallback((event: any, selectedDate?: Date) => {
         setShowFechaInicioPicker(false)
         if (selectedDate) {
             setFechaInicio(DateTime.fromJSDate(selectedDate))
         }
-    }
-    const onChangeFechaTerminoFilter = (event: any, selectedDate?: Date) => {
+    },
+        [setShowFechaInicioPicker, setFechaInicio]
+    );
+
+    const onChangeFechaTerminoFilter = useCallback((event: any, selectedDate?: Date) => {
         setShowFechaTerminoPicker(false)
         if (selectedDate) {
             setFechaTermino(DateTime.fromJSDate(selectedDate))
         }
-    }
+    },
+        [setShowFechaTerminoPicker, setFechaTermino]
+    );
 
-    const rightSwipe = (progress: any, dragX: any, id: number) => {
+    const rightSwipe = useCallback((progress: any, dragX: any, id: number) => {
         const editStyle = useAnimatedStyle(() => {
             const translateX = interpolate(
                 progress.value,
@@ -210,7 +223,7 @@ export default () => {
                 alignItems: 'center',
             };
         });
-    
+
         const deleteStyle = useAnimatedStyle(() => {
             const translateX = interpolate(
                 progress.value,
@@ -225,7 +238,7 @@ export default () => {
                 alignItems: 'center',
             };
         });
-        
+
         const editAction = () => {
             router.push("/docs/edit/" + id)
         }
@@ -257,10 +270,12 @@ export default () => {
                 </Reanimated.View>
             </Reanimated.View>
         )
-    }
+    },
+        [theme, router, getData, apiPrefix, sessionHash, appStyles]
+    );
 
     return (
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
             <Stack.Screen options={{ headerTitle: "Documentos" }} />
             <Portal>
                 <Dialog visible={showFiltersModal} onDismiss={() => {
@@ -363,14 +378,6 @@ export default () => {
                     </Link>
                     <IconButton
                         style={appStyles.btnRowBtn}
-                        icon="refresh"
-                        mode="contained-tonal"
-                        containerColor={theme.colors.primary}
-                        iconColor={theme.colors.onPrimary}
-                        onPress={() => { getData(null, null, null, null) }}
-                    />
-                    <IconButton
-                        style={appStyles.btnRowBtn}
                         icon="filter"
                         mode="contained-tonal"
                         containerColor={theme.colors.primary}
@@ -389,48 +396,44 @@ export default () => {
                     />
                 </View>
             </View>
-            <ScrollView style={appStyles.container}>
-                <DataTable>
-                    <DataTable.Header>
-                        <DataTable.Title style={{ flex: 0.5 }}>Fecha</DataTable.Title>
-                        <DataTable.Title>Proposito</DataTable.Title>
-                        <DataTable.Title numeric style={{ flex: 0.5 }}>Monto</DataTable.Title>
-                    </DataTable.Header>
-                    {getDocsApiCalling &&
-                        <DataTable.Row>
-                            <DataTable.Cell style={{ justifyContent: "center" }}>Cargando...</DataTable.Cell>
-                        </DataTable.Row>
-                    }
-                    {!getDocsApiCalling && docsList.map((item) => (
-                        <ReanimatedSwipeable
-                            renderRightActions={(progress, dragX) => rightSwipe(progress, dragX, item.id)}
-                            key={item.id}
-                            friction={1}
-                            >
-                            <DataTable.Row style={{backgroundColor: theme.colors.background}}>
-                                <DataTable.Cell style={{ flex: 0.6 }}>
-                                    <Text style={appStyles.textFontSize}>{item.fecha}</Text>
-                                </DataTable.Cell>
-                                <DataTable.Cell>
-                                    <Text style={appStyles.textFontSize}>{item.proposito}</Text>
-                                </DataTable.Cell>
-                                <DataTable.Cell style={{ flex: 0.6 }} numeric>
-                                    <Text style={appStyles.textFontSize}>{numeral(item.monto).format("0,0")}</Text>
-                                </DataTable.Cell>
-                            </DataTable.Row>
-                        </ReanimatedSwipeable>
-                    ))}
-                    {(docsList.length == 0 && !getDocsApiCalling) &&
-                        <DataTable.Row>
-                            <DataTable.Cell style={{ justifyContent: "center" }}>No hay Datos</DataTable.Cell>
-                        </DataTable.Row>
-                    }
-                </DataTable>
-                <View style={appStyles.totalDiv} >
-                    <Text style={appStyles.textFontSize}>Total $ {numeral(sumaTotalDocs).format('0,0')}</Text>
-                </View>
-                <View style={{ margin: 10 }}></View>
-            </ScrollView>
+            <DataTable>
+                <DataTable.Header>
+                    <DataTable.Title style={{ flex: 0.5 }}>Fecha</DataTable.Title>
+                    <DataTable.Title>Proposito</DataTable.Title>
+                    <DataTable.Title numeric style={{ flex: 0.5 }}>Monto</DataTable.Title>
+                </DataTable.Header>
+            </DataTable>
+            {(docsList.length == 0 && !getDocsApiCalling) &&
+                <Text style={{ textAlign: 'center', marginTop: 20 }}>No hay Datos</Text>
+            }
+            <FlatList
+                data={docsList}
+                onRefresh={() => { getData(null, null, null, null) }}
+                refreshing={getDocsApiCalling}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={({ item }) => (
+                    <ReanimatedSwipeable
+                        renderRightActions={(progress, dragX) => rightSwipe(progress, dragX, item.id)}
+                        key={item.id}
+                        friction={1}
+                    >
+                        <View style={{ backgroundColor: theme.colors.background, flexDirection: 'row', padding: 10, alignItems: "center", borderBottomWidth: 1, borderBottomColor: theme.colors.surfaceVariant }}>
+                            <View style={{ flex: 0.6 }}>
+                                <Text style={appStyles.textFontSize}>{item.fecha}</Text>
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <Text style={appStyles.textFontSize}>{item.proposito}</Text>
+                            </View>
+                            <View style={{ flex: 0.6, alignSelf: "flex-end" }}>
+                                <Text style={[appStyles.textFontSize, { textAlign: "right" }]}>{numeral(item.monto).format("0,0")}</Text>
+                            </View>
+                        </View>
+                    </ReanimatedSwipeable>
+                )}
+            />
+            <View style={appStyles.totalDiv} >
+                <Text style={appStyles.textFontSize}>Total $ {numeral(sumaTotalDocs).format('0,0')}</Text>
+            </View>
         </View>
 
     )

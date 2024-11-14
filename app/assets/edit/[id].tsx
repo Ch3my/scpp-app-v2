@@ -109,13 +109,15 @@ export default () => {
     return (
         <View style={{ flex: 1 }}>
             <Stack.Screen options={{ headerTitle: "Ver Asset" }} />
-            <Snackbar
-                duration={2500}
-                visible={showSnackBar}
-                style={{ zIndex: 999 }}
-                onDismiss={() => { setShowSnackBar(false) }}>
-                {snackbarMsg}
-            </Snackbar>
+            <Portal>
+                <Snackbar
+                    duration={2500}
+                    visible={showSnackBar}
+                    style={{ zIndex: 999 }}
+                    onDismiss={() => { setShowSnackBar(false) }}>
+                    {snackbarMsg}
+                </Snackbar>
+            </Portal>
             <Portal>
                 <Dialog visible={showConfirmDelete} onDismiss={() => { setShowConfirmDelete(false) }}>
                     <Dialog.Title>Confirme por Favor</Dialog.Title>
@@ -137,7 +139,7 @@ export default () => {
                     mode="contained-tonal"
                     containerColor={theme.colors.primary}
                     iconColor={theme.colors.onPrimary}
-                    onPress={()=> {setShowConfirmDelete(true)}}
+                    onPress={() => { setShowConfirmDelete(true) }}
                 />
             </View>
             <ScrollView style={appStyles.container}>

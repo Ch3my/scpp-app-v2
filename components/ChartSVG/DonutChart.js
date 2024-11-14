@@ -27,7 +27,7 @@ const DonutChart = ({
   const theme = useTheme();
 
   const animateChart = useCallback(() => {
-    animatedPercentage.value = 0; // Reset to 0
+    animatedPercentage.value = animatedPercentage.value - 5; // backup a bit, dont go to 0 looks ugly
     animatedPercentage.value = withTiming(validPercentage, {
       duration,
       easing: Easing.out(Easing.cubic),

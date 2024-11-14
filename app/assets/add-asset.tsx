@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import { Link, Stack } from "expo-router";
 import { useEffect, useState, useRef, useContext } from 'react';
-import { Camera, CameraType } from 'expo-camera';
+import { Camera, CameraType, CameraView } from 'expo-camera';
 import { GetAppStyles } from "../../styles/styles"
 import {
     IconButton, MD3Colors, useTheme, Button, TextInput,
@@ -24,9 +24,9 @@ export default () => {
     const { sessionHash, apiPrefix, isReady } = useContext(ScppContext);
 
     const [cameraPermission, setCameraPermission] = useState<string | null>(null);
-    const [type, setType] = useState(CameraType.back);
+    const [type, setType] = useState<CameraType>("back");
     const [photoLocation, setPhotoLocation] = useState<string | undefined>(undefined);
-    const cameraRef = useRef<Camera | null>(null)
+    const cameraRef = useRef<CameraView | null>(null)
     const [showCamera, setShowCamera] = useState<boolean>(false);
     const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
     const [showCategoriaList, setShowCategoriaList] = useState<boolean>(false);
@@ -63,13 +63,13 @@ export default () => {
     }, [])
 
     const toggleCameraType = () => {
-        setType(current => (current === CameraType.back ? CameraType.front : CameraType.back));
+        setType(current => (current === "back" ? "front" : "back"));
     }
     const takePicture = async () => {
         if (cameraRef.current) {
             try {
                 const photo = await cameraRef.current.takePictureAsync();
-                setPhotoLocation(photo.uri)
+                setPhotoLocation(photo?.uri)
                 setShowCamera(false)
             } catch (error) {
                 console.log(error)
@@ -126,13 +126,15 @@ export default () => {
     return (
         <View style={{ flex: 1 }}>
             <Stack.Screen options={{ headerTitle: "Agregar Asset" }} />
-            <Snackbar
-                duration={2500}
-                visible={showSnackBar}
-                style={{ zIndex: 999 }}
-                onDismiss={() => { setShowSnackBar(false) }}>
-                {snackbarMsg}
-            </Snackbar>
+            <Portal>
+                <Snackbar
+                    duration={2500}
+                    visible={showSnackBar}
+                    style={{ zIndex: 999 }}
+                    onDismiss={() => { setShowSnackBar(false) }}>
+                    {snackbarMsg}
+                </Snackbar>
+            </Portal>
             <Portal>
                 <Dialog visible={showCategoriaList} onDismiss={() => { setShowCategoriaList(false) }} style={{ height: '80%' }}>
                     <Dialog.Title>Categoria</Dialog.Title>
@@ -148,7 +150,7 @@ export default () => {
                     </Dialog.ScrollArea>
                 </Dialog>
             </Portal>
-            <View style={[appStyles.btnRow ]}>
+            <View style={[appStyles.btnRow]}>
                 <IconButton
                     style={appStyles.btnRowBtn}
                     icon="content-save"
@@ -197,7 +199,7 @@ export default () => {
                 }
                 <View style={appStyles.centerContentContainer}>
                     {showCamera &&
-                        <Camera style={appStyles.camera} type={type} ref={cameraRef} />
+                        <CameraView style={appStyles.camera} facing={type} ref={cameraRef}  />
                     }
                     {!showCamera &&
                         <Image

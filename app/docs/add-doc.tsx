@@ -114,7 +114,7 @@ export default () => {
         }
 
         let computedMonto = docMonto
-        if(negativeMonto){
+        if (negativeMonto) {
             computedMonto *= -1
         }
 
@@ -149,13 +149,15 @@ export default () => {
     return (
         <View style={{ flex: 1 }}>
             <Stack.Screen options={{ headerTitle: "Agregar Documento" }} />
-            <Snackbar
-                duration={2500}
-                visible={showSnackBar}
-                style={{ zIndex: 999 }}
-                onDismiss={() => { setShowSnackBar(false) }}>
-                {snackbarMsg}
-            </Snackbar>
+            <Portal>
+                <Snackbar
+                    duration={2500}
+                    visible={showSnackBar}
+                    style={{ zIndex: 999 }}
+                    onDismiss={() => { setShowSnackBar(false) }}>
+                    {snackbarMsg}
+                </Snackbar>
+            </Portal>
             <Portal>
                 <Dialog visible={showCategoriaList} onDismiss={() => { setShowCategoriaList(false) }} style={{ height: '80%' }}>
                     <Dialog.Title>Categoria</Dialog.Title>

@@ -17,7 +17,7 @@ export const GetAppStyles = (theme: any) => StyleSheet.create({
         marginHorizontal: 5
     },
     camera: {
-        height: 500,
+        height: 400,
         width: "90%",
         marginVertical: 5
     },
@@ -32,7 +32,7 @@ export const GetAppStyles = (theme: any) => StyleSheet.create({
     totalDiv: {
         alignItems: 'flex-end',
         padding: 15,
-        marginTop: 10
+        marginTop: 5
     },
     textFontSize: {
         fontSize: 16
