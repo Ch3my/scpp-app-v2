@@ -1,9 +1,12 @@
 import { SaveFormat, manipulateAsync } from 'expo-image-manipulator';
 
-export const CompressAndResizeImage = async (imageUri: string): Promise<string> => {
+export const CompressAndResizeImage = async (imageUri: string, rotation: number): Promise<string> => {
     const resizeResult = await manipulateAsync(
         imageUri,
-        [{ resize: { width: 720 } }],
+        [
+            { resize: { width: 720 } },
+            { rotate: rotation },
+        ],
         { compress: 0.5, format: SaveFormat.JPEG }
     );
 
@@ -13,4 +16,3 @@ export const CompressAndResizeImage = async (imageUri: string): Promise<string> 
         throw new Error('Error compressing and resizing image');
     }
 };
-

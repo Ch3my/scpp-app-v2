@@ -1,19 +1,19 @@
 import {
-    StyleSheet, Text, TouchableOpacity,
-    View, ScrollView, Image, FlatList
+    View, ScrollView, Image, FlatList,
+    Modal, Text
 } from 'react-native';
-import { Link, Stack } from "expo-router";
-import { useEffect, useState, useRef, useContext } from 'react';
+import { Stack } from "expo-router";
+import { useEffect, useState, useRef, useContext, useCallback } from 'react';
 import { Camera, CameraType, CameraView } from 'expo-camera';
 import { GetAppStyles } from "../../styles/styles"
 import {
     IconButton, MD3Colors, useTheme, Button, TextInput,
-    Portal, Dialog, List, Snackbar
+    Portal, Dialog, List, Snackbar,
 } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { DateTime } from "luxon";
 import axios, { AxiosResponse } from 'axios'
-import { ScppProvider, ScppContext } from "../ScppContext"
+import { ScppContext } from "../ScppContext"
 import { ConvertToBase64 } from "../../helpers/base64-file-enconder"
 import { CompressAndResizeImage } from "../../helpers/img-compressor"
 
@@ -31,7 +31,9 @@ export default () => {
     const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
     const [showCategoriaList, setShowCategoriaList] = useState<boolean>(false);
     const [showSnackBar, setShowSnackBar] = useState<boolean>(false);
+    const [cameraWorking, setCameraWorking] = useState<boolean>(false);
     const [snackbarMsg, setSnackbarMsg] = useState<string>("");
+    const [rotation, setRotation] = useState(0);
 
     let [assetDescription, setAssetDescription] = useState<string>("")
     let [assetDate, setAssetDate] = useState<Date>(new Date())
@@ -66,6 +68,8 @@ export default () => {
         setType(current => (current === "back" ? "front" : "back"));
     }
     const takePicture = async () => {
+        setRotation(0)
+        setCameraWorking(true)
         if (cameraRef.current) {
             try {
                 const photo = await cameraRef.current.takePictureAsync();
@@ -75,6 +79,7 @@ export default () => {
                 console.log(error)
             }
         }
+        setCameraWorking(false)
     }
     const onChangeDatePicker = (event: any, selectedDate?: Date) => {
         setShowDatePicker(false)
@@ -104,7 +109,7 @@ export default () => {
             setShowSnackBar(true)
             return
         }
-        let compressImgUri = await CompressAndResizeImage(photoLocation)
+        let compressImgUri = await CompressAndResizeImage(photoLocation, rotation)
         let encondedFile = await ConvertToBase64(compressImgUri)
         let apiArgs = {
             fk_categoria: assetCatId,
@@ -123,9 +128,48 @@ export default () => {
         setShowSnackBar(true)
     }
 
+    const cameraReady = useCallback(() => {
+        setCameraWorking(false);
+    }, []);
+
+    const prepareCamera = useCallback(() => {
+        setShowCamera(true);
+        setCameraWorking(true);
+    }, []);
+
+    const rotateLeft = useCallback(() => {
+        setRotation((prevRotation) => (prevRotation - 90) % 360);
+    }, []);
+
+    const rotateRight = useCallback(() => {
+        setRotation((prevRotation) => (prevRotation + 90) % 360);
+    }, []);
+
     return (
         <View style={{ flex: 1 }}>
             <Stack.Screen options={{ headerTitle: "Agregar Asset" }} />
+            <Modal
+                animationType="slide"
+                visible={showCamera}
+                onRequestClose={() => {
+                    setShowCamera(false)
+                }}>
+                {showCamera &&
+                    <>
+                        <CameraView style={{ flex: 1, marginBottom: 20 }} facing={type}
+                            ref={cameraRef} animateShutter={false}
+                            onCameraReady={cameraReady} />
+                        <View style={{ flexDirection: "row", justifyContent: "space-around", marginBottom: 20 }}>
+                            <Button icon="camera" mode="contained-tonal" onPress={toggleCameraType}>
+                                Flip Camara
+                            </Button>
+                            <Button icon="camera" mode="contained" onPress={takePicture} loading={cameraWorking}>
+                                Tomar Foto
+                            </Button>
+                        </View>
+                    </>
+                }
+            </Modal>
             <Portal>
                 <Snackbar
                     duration={2500}
@@ -191,33 +235,31 @@ export default () => {
                     value={assetCatName}
                     right={<TextInput.Icon icon="chevron-down" onPress={() => { setShowCategoriaList(true) }} />}
                 />
-
                 {!showCamera &&
-                    <Button icon="camera" mode="contained" onPress={() => setShowCamera(true)}>
+                    <Button icon="camera" mode="contained" onPress={prepareCamera}>
                         Agregar Foto
                     </Button>
                 }
-                <View style={appStyles.centerContentContainer}>
-                    {showCamera &&
-                        <CameraView style={appStyles.camera} facing={type} ref={cameraRef}  />
-                    }
-                    {!showCamera &&
-                        <Image
-                            style={appStyles.camera}
-                            source={{ uri: photoLocation }} />
-                    }
-                </View>
-                {showCamera &&
-                    <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
-                        <Button icon="camera" mode="contained-tonal" onPress={toggleCameraType}>
-                            Flip Camara
-                        </Button>
-                        <Button icon="camera" mode="contained" onPress={takePicture}>
-                            Tomar Foto
-                        </Button>
+
+                {!showCamera && photoLocation &&
+                    <View>
+                        <View style={{ overflow: "hidden", padding: 10 }}>
+                            <Image
+                                style={{ height: 400, transform: [{ rotate: `${rotation}deg` }] }}
+                                source={{ uri: photoLocation }}
+                                resizeMode="contain" />
+                        </View>
+                        <View style={{ flexDirection: 'row', justifyContent: "space-around", width: "100%" }}>
+                            <Button icon="rotate-left" mode="contained-tonal" onPress={rotateLeft}>
+                                Girar Izquierda
+                            </Button>
+                            <Button icon="rotate-right" mode="contained-tonal" onPress={rotateRight}>
+                                Girar Derecha
+                            </Button>
+                        </View>
                     </View>
                 }
-                <View style={{ margin: 10 }}></View>
+
             </ScrollView>
         </View>
     )

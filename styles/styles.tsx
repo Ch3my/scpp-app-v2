@@ -16,15 +16,6 @@ export const GetAppStyles = (theme: any) => StyleSheet.create({
     btnRowBtn: {
         marginHorizontal: 5
     },
-    camera: {
-        height: 400,
-        width: "90%",
-        marginVertical: 5
-    },
-    cameraContent: {
-        flexDirection: "column",
-        justifyContent: "flex-end",
-    },
     centerContentContainer: {
         alignItems: 'center',
         justifyContent: 'center'

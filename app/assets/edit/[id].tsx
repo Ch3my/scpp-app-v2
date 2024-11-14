@@ -169,7 +169,7 @@ export default () => {
                 />
                 <View style={appStyles.centerContentContainer}>
                     {assetAssetData &&
-                        <TouchableOpacity onPress={() => { setShowImgModal(true) }} style={appStyles.camera}>
+                        <TouchableOpacity onPress={() => { setShowImgModal(true) }} style={{ height: 500, width: "100%" }}>
                             <Image
                                 style={{ flex: 1 }}
                                 resizeMode="contain"
