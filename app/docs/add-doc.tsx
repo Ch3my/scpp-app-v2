@@ -133,7 +133,7 @@ export default () => {
             fk_tipoDoc: docTipoDocId,
             sessionHash,
         }
-        if (docTipoDocId != 1) {
+        if (docTipoDocId == 1) {
             apiArgs.fk_categoria = docCatId
         }
         let response = await axios.post(apiPrefix + '/documentos', apiArgs)
