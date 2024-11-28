@@ -1,4 +1,4 @@
-import { ScrollView, View, InteractionManager, FlatList } from "react-native"
+import { View, InteractionManager, FlatList } from "react-native"
 import { Link, useNavigation, Stack, router, useFocusEffect } from "expo-router";
 import { IconButton, useTheme, DataTable, Text, TextInput, Portal, Dialog, List, Button } from 'react-native-paper';
 import { GetAppStyles } from "../../styles/styles"
@@ -10,8 +10,9 @@ import { DateTime } from "luxon";
 import numeral from "numeral"
 import "numeral/locales/es-es";
 
-import Reanimated, { Extrapolation, interpolate, useAnimatedStyle } from "react-native-reanimated";
+import Reanimated, { Extrapolation, interpolate, LinearTransition, useAnimatedStyle } from "react-native-reanimated";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+import Animated from "react-native-reanimated";
 
 export default () => {
     numeral.locale("es-es")
@@ -243,6 +244,8 @@ export default () => {
             router.push("/docs/edit/" + id)
         }
         const deleteDoc = async () => {
+            setDocsList(prevDocs => prevDocs.filter(doc => doc.id !== id))
+            // TODO. Update suma Total
             try {
                 await axios.delete(apiPrefix + '/documentos', { data: { id, sessionHash } })
                 getData(null, null, null, null)
@@ -406,11 +409,12 @@ export default () => {
             {(docsList.length == 0 && !getDocsApiCalling) &&
                 <Text style={{ textAlign: 'center', marginTop: 20 }}>No hay Datos</Text>
             }
-            <FlatList
+            <Animated.FlatList
                 data={docsList}
                 onRefresh={() => { getData(null, null, null, null) }}
                 refreshing={getDocsApiCalling}
                 keyExtractor={(item) => item.id.toString()}
+                itemLayoutAnimation={LinearTransition}
                 renderItem={({ item }) => (
                     <ReanimatedSwipeable
                         renderRightActions={(progress, dragX) => rightSwipe(progress, dragX, item.id)}
