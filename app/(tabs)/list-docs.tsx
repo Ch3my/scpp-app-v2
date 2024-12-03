@@ -4,7 +4,6 @@ import { IconButton, useTheme, DataTable, Text, TextInput, Portal, Dialog, List,
 import { GetAppStyles } from "../../styles/styles"
 import { useEffect, useState, useContext, useCallback } from 'react';
 import axios, { AxiosResponse } from 'axios'
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { ScppContext } from "../ScppContext"
 import { DateTime } from "luxon";
 import numeral from "numeral"
@@ -13,6 +12,7 @@ import "numeral/locales/es-es";
 import Reanimated, { Extrapolation, interpolate, LinearTransition, useAnimatedStyle } from "react-native-reanimated";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import Animated from "react-native-reanimated";
+import ListDocsFilters from "../../components/ListDocsFilters";
 
 export default () => {
     numeral.locale("es-es")
@@ -31,17 +31,13 @@ export default () => {
     const [tipoDocFilterId, setTipoDocFilterId] = useState<number>(1)
     const [categoriaFilterId, setCategoriaFilterId] = useState<number | null>(null)
     const [showFiltersModal, setShowFiltersModal] = useState<boolean>(false)
-    const [showFechaInicioPicker, setShowFechaInicioPicker] = useState<boolean>(false)
-    const [showFechaTerminoPicker, setShowFechaTerminoPicker] = useState<boolean>(false)
 
     const [tipoDocFilterName, setTipoDocFilterName] = useState<string>("Gastos")
     const [categoriaFilterName, setCategoriaFilterName] = useState<string>("(Todos)")
     const [searchPhrase, setSearchPhrase] = useState<string | undefined>(undefined)
 
     const [showTipoDocFilter, setShowTipoDocFilter] = useState<boolean>(false)
-    const [listOfCategoria, setListOfCategoria] = useState<Categoria[]>([])
     const [listOfTipoDoc, setListOfTipoDoc] = useState<TipoDoc[]>([])
-    const [showCategoriaList, setShowCategoriaList] = useState<boolean>(false)
 
     // Para ejecutar algo cuando navegan a esta pantalla
     // React Navigation runs its animations in native thread, so it's not a problem in many cases. But if the effect updates 
@@ -60,32 +56,13 @@ export default () => {
             setSearchPhrase(undefined)
 
             const task = InteractionManager.runAfterInteractions(() => {
-                getData(null, null, null, null)
+                getData(null, null, null, null, searchPhrase)
             })
             return () => task.cancel();
         }, [useNavigation().isFocused()])
     );
 
     useEffect(() => {
-        const getCategorias = async () => {
-            try {
-                const response: AxiosResponse<any> = await axios.get(apiPrefix + '/categorias', {
-                    params: {
-                        sessionHash
-                    }
-                });
-                if (response.data) {
-                    // Add the item to the top of the array
-                    const modifiedData = [
-                        { id: null, descripcion: "(Todos)" },
-                        ...response.data
-                    ];
-                    setListOfCategoria(modifiedData)
-                }
-            } catch (error) {
-                console.log(error);
-            }
-        };
         const getTipoDoc = async () => {
             try {
                 const response: AxiosResponse<any> = await axios.get(apiPrefix + '/tipo-docs', {
@@ -101,7 +78,6 @@ export default () => {
             }
         };
         getTipoDoc()
-        getCategorias();
     }, [])
 
     const setFechaToTipoDoc = (fk_tipoDoc: number | null) => {
@@ -124,7 +100,8 @@ export default () => {
     const getData = useCallback(async (aFechaInicio: DateTime | null,
         aFechaTermino: DateTime | null,
         afk_tipoDoc: number | null,
-        afk_categoria: number | null) => {
+        afk_categoria: number | null,
+        aSearchPhrase: string | undefined) => {
         // Si vienen argumentos usamos argumentos, sino usamos el estado
         // como se hace queue de los setState el argumento (si existe) esta mas actualizado el que State
         setGetDocsApiCalling(true)
@@ -141,10 +118,15 @@ export default () => {
         if (afk_tipoDoc) {
             localTipoDocId = afk_tipoDoc
         }
+        // -1 something i created because picker coulnd not handle null aparently
         let localCategoriaId = categoriaFilterId
         if (afk_categoria) {
             localCategoriaId = afk_categoria
         }
+        if(localCategoriaId == -1) {
+            localCategoriaId = null
+        }
+
         try {
             const response: AxiosResponse<any> = await axios.get(apiPrefix + '/documentos', {
                 params: {
@@ -152,7 +134,7 @@ export default () => {
                     fechaTermino: localFechaTermino?.toFormat('yyyy-MM-dd'),
                     fk_tipoDoc: localTipoDocId,
                     fk_categoria: localCategoriaId,
-                    searchPhrase,
+                    searchPhrase: aSearchPhrase,
                     sessionHash
                 }
             });
@@ -179,35 +161,32 @@ export default () => {
     ]
     );
 
-    const onUpdateCategoria = ({ id, descripcion }: { id: number | null, descripcion: string }) => {
-        setCategoriaFilterId(id)
-        setCategoriaFilterName(descripcion)
-        setShowCategoriaList(false)
-    }
     const onUpdateTipoDoc = async ({ id, descripcion }: { id: number, descripcion: string }) => {
         let [newFecIni, newFecTer] = setFechaToTipoDoc(id)
         setTipoDocFilterId(id)
         setTipoDocFilterName(descripcion)
         setShowTipoDocFilter(false)
-        getData(newFecIni, newFecTer, id, null)
+        getData(newFecIni, newFecTer, id, null, searchPhrase)
     }
-    const onChangeFechaIniFilter = useCallback((event: any, selectedDate?: Date) => {
-        setShowFechaInicioPicker(false)
-        if (selectedDate) {
-            setFechaInicio(DateTime.fromJSDate(selectedDate))
-        }
-    },
-        [setShowFechaInicioPicker, setFechaInicio]
-    );
 
-    const onChangeFechaTerminoFilter = useCallback((event: any, selectedDate?: Date) => {
-        setShowFechaTerminoPicker(false)
-        if (selectedDate) {
-            setFechaTermino(DateTime.fromJSDate(selectedDate))
-        }
-    },
-        [setShowFechaTerminoPicker, setFechaTermino]
-    );
+    const onFilterUpdate = ({
+        searchPhrase,
+        categoriaFilterId,
+        fechaInicio,
+        fechaTermino
+    }: {
+        searchPhrase: string | undefined;
+        categoriaFilterId: number | null;
+        fechaInicio: DateTime | null;
+        fechaTermino: DateTime | null;
+    }) => {
+        setSearchPhrase(searchPhrase)
+        setFechaInicio(fechaInicio)
+        setFechaTermino(fechaTermino)
+        setCategoriaFilterId(categoriaFilterId)
+        // NOTA este searchPhrase es el local de la funcion, no el estado
+        getData(fechaInicio, fechaTermino, null, categoriaFilterId, searchPhrase)
+    }
 
     const rightSwipe = useCallback((progress: any, dragX: any, id: number) => {
         const editStyle = useAnimatedStyle(() => {
@@ -245,10 +224,10 @@ export default () => {
         }
         const deleteDoc = async () => {
             setDocsList(prevDocs => prevDocs.filter(doc => doc.id !== id))
-            // TODO. Update suma Total
+            // TODO. Update suma Total o lo hace getData luego
             try {
                 await axios.delete(apiPrefix + '/documentos', { data: { id, sessionHash } })
-                getData(null, null, null, null)
+                getData(null, null, null, null, searchPhrase)
             } catch (error) {
                 console.log(error)
             }
@@ -280,67 +259,16 @@ export default () => {
     return (
         <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
             <Stack.Screen options={{ headerTitle: "Documentos" }} />
-            <Portal>
-                <Dialog visible={showFiltersModal} onDismiss={() => {
+            <ListDocsFilters visible={showFiltersModal}
+                initialFechaInicio={fechaInicio}
+                initialFechaTermino={fechaTermino}
+                initialCategoriaFilterName={categoriaFilterName}
+                initialSearchPhrase={searchPhrase}
+                onDismiss={() => {
                     setShowFiltersModal(false)
-                    getData(null, null, null, null)
-                }}>
-                    <Dialog.Title>Filtros</Dialog.Title>
-                    <Dialog.ScrollArea>
-                        <TextInput
-                            style={{ marginBottom: 5 }}
-                            label="Buscar"
-                            mode="flat"
-                            dense={true}
-                            value={searchPhrase}
-                            onChangeText={text => setSearchPhrase(text)} />
-                        <TextInput
-                            style={{ marginBottom: 5 }}
-                            label="Categoria"
-                            mode="flat"
-                            dense={true}
-                            editable={false}
-                            value={categoriaFilterName}
-                            right={<TextInput.Icon icon="chevron-down" onPress={() => { setShowCategoriaList(true) }} />}
-                        />
-                        <TextInput
-                            style={{ marginBottom: 5 }}
-                            label="Fecha Inicio"
-                            mode="flat"
-                            dense={true}
-                            editable={false}
-                            value={fechaInicio?.toFormat('yyyy-MM-dd')}
-                            right={<TextInput.Icon icon="calendar" onPress={() => { setShowFechaInicioPicker(true) }} />}
-                        />
-                        {(showFechaInicioPicker && fechaInicio) && (
-                            <DateTimePicker value={fechaInicio.toJSDate()} mode="date"
-                                display="default" onChange={onChangeFechaIniFilter}
-                            />
-                        )}
-                        <TextInput
-                            style={{ marginBottom: 5 }}
-                            label="Fecha Termino"
-                            mode="flat"
-                            dense={true}
-                            editable={false}
-                            value={fechaTermino?.toFormat('yyyy-MM-dd')}
-                            right={<TextInput.Icon icon="calendar" onPress={() => {
-                                setShowFechaTerminoPicker(true)
-                            }} />}
-                        />
-                        {(showFechaTerminoPicker && fechaTermino) && (
-                            <DateTimePicker value={fechaTermino.toJSDate()} mode="date"
-                                display="default" onChange={onChangeFechaTerminoFilter}
-                            />
-                        )}
-                    </Dialog.ScrollArea>
-                    <Dialog.Actions>
-                        <Button onPress={() => {
-                            setShowFiltersModal(false)
-                            getData(null, null, null, null)
-                        }}>LISTO</Button>
-                    </Dialog.Actions>
-                </Dialog>
+                }}
+                onFilterUpdate={onFilterUpdate} />
+            <Portal>
                 <Dialog visible={showTipoDocFilter} onDismiss={() => { setShowTipoDocFilter(false) }}>
                     <Dialog.Title>Tipo Documento</Dialog.Title>
                     <Dialog.ScrollArea>
@@ -351,19 +279,6 @@ export default () => {
                                     title={item.descripcion}
                                     key={item.id}
                                     onPress={() => { onUpdateTipoDoc({ id: item.id, descripcion: item.descripcion }) }} />
-                            } />
-                    </Dialog.ScrollArea>
-                </Dialog>
-                <Dialog visible={showCategoriaList} onDismiss={() => { setShowCategoriaList(false) }} style={{ height: '80%' }}>
-                    <Dialog.Title>Categoria</Dialog.Title>
-                    <Dialog.ScrollArea>
-                        <FlatList
-                            data={listOfCategoria}
-                            renderItem={({ item }) =>
-                                <List.Item
-                                    title={item.descripcion}
-                                    key={item.id}
-                                    onPress={() => { onUpdateCategoria({ id: item.id, descripcion: item.descripcion }) }} />
                             } />
                     </Dialog.ScrollArea>
                 </Dialog>
@@ -411,7 +326,7 @@ export default () => {
             }
             <Animated.FlatList
                 data={docsList}
-                onRefresh={() => { getData(null, null, null, null) }}
+                onRefresh={() => { getData(null, null, null, null, searchPhrase) }}
                 refreshing={getDocsApiCalling}
                 keyExtractor={(item) => item.id.toString()}
                 itemLayoutAnimation={LinearTransition}
