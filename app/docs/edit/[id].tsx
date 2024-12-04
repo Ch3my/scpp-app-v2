@@ -13,7 +13,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { DateTime } from "luxon";
 import axios, { AxiosResponse } from 'axios'
 import { ScppContext } from "../../ScppContext"
-import { MaskedTextInput } from "react-native-mask-text";
+import MaskInput, { createNumberMask } from 'react-native-mask-input';
 import { useLocalSearchParams } from 'expo-router';
 
 export default () => {
@@ -155,6 +155,13 @@ export default () => {
         setShowSnackBar(true)
     }
 
+    const dollarMask = createNumberMask({
+        prefix: ['$', ' '],
+        delimiter: '.',
+        separator: ',',
+        precision: 0,
+    })
+
     return (
         <View style={{ flex: 1 }} >
             <Stack.Screen options={{ headerTitle: "Editar Documento" }} />
@@ -207,26 +214,22 @@ export default () => {
             </View>
             <ScrollView style={appStyles.container}>
                 <TextInput mode="flat" label='Monto'
-                    keyboardType={'decimal-pad'}
+                    inputMode='numeric'
                     style={{ marginBottom: 5 }}
                     dense={true}
                     value={docMonto.toString()}
                     right={<TextInput.Icon icon="minus-circle" onPress={() => { setNegativeMonto(!negativeMonto) }}
                         color={() => negativeMonto ? "red" : theme.colors.onSurfaceVariant} />}
                     render={props =>
-                        <MaskedTextInput
+                        <MaskInput
                             {...props}
-                            type="currency"
-                            options={{
-                                prefix: '$',
-                                groupSeparator: '.',
-                                precision: 0
+                            onChangeText={(masked, unmasked) => {
+                                setDocMonto(parseInt(unmasked))
                             }}
-                            onChangeText={(formatted, extracted) => {
-                                setDocMonto(parseInt(extracted))
-                            }}
+                            mask={dollarMask}
                         />
                     } />
+
                 <TextInput label='Proposito'
                     style={{ marginBottom: 5 }}
                     mode="flat"

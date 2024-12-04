@@ -2,8 +2,8 @@
 import {
     StyleSheet, View, ScrollView, FlatList
 } from 'react-native';
-import { Link, Stack } from "expo-router";
-import { useEffect, useState, useRef, useContext } from 'react';
+import { Stack } from "expo-router";
+import { useEffect, useState, useRef, useContext, useCallback } from 'react';
 import { GetAppStyles } from "../../styles/styles"
 import {
     IconButton, useTheme, Button, TextInput,
@@ -13,7 +13,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { DateTime } from "luxon";
 import axios, { AxiosResponse } from 'axios'
 import { ScppContext } from "../ScppContext"
-import { MaskedTextInput } from "react-native-mask-text";
+import MaskInput, { createNumberMask } from 'react-native-mask-input';
 
 export default () => {
     const theme = useTheme();
@@ -73,18 +73,18 @@ export default () => {
         getCategorias();
     }, [])
 
-    const onChangeDocDatePicker = (event: any, selectedDate?: Date) => {
+    const onChangeDocDatePicker = useCallback((event: any, selectedDate?: Date) => {
         setShowDocDatePicker(false)
         if (selectedDate) {
             setDocDate(selectedDate)
         }
-    }
-    const onUpdateCategoria = ({ id, descripcion }: { id: number | null, descripcion: string }) => {
+    }, [])
+    const onUpdateCategoria = useCallback(({ id, descripcion }: { id: number | null, descripcion: string }) => {
         setDocCatId(id)
         setDocCatName(descripcion)
         setShowCategoriaList(false)
-    }
-    const onUpdateTipoDoc = ({ id, descripcion }: { id: number, descripcion: string }) => {
+    }, [])
+    const onUpdateTipoDoc = useCallback(({ id, descripcion }: { id: number, descripcion: string }) => {
         setDocTipoDocId(id)
         setDocTipoDocName(descripcion)
         setShowTipoDocList(false)
@@ -94,7 +94,7 @@ export default () => {
         if (id == 1) {
             setShowCategoriaInput(true)
         }
-    }
+    }, [])
     const saveDoc = async () => {
         setShowSnackBar(false)
         if (docTipoDocId == 1 && docCatId == 0) {
@@ -145,6 +145,13 @@ export default () => {
         setSnackbarMsg("Documento guardado con Exito")
         setShowSnackBar(true)
     }
+    
+    const dollarMask = createNumberMask({
+        prefix: ['$', ' '],
+        delimiter: '.',
+        separator: ',',
+        precision: 0,
+    })
 
     return (
         <View style={{ flex: 1 }}>
@@ -199,24 +206,19 @@ export default () => {
             <View style={appStyles.container}>
                 <ScrollView>
                     <TextInput mode="flat" label='Monto'
-                        keyboardType={'decimal-pad'}
+                        inputMode='numeric'
                         value={docMonto.toString()}
                         dense={true}
                         style={{ marginBottom: 5 }}
                         right={<TextInput.Icon icon="minus-circle" onPress={() => { setNegativeMonto(!negativeMonto) }}
                             color={() => negativeMonto ? "red" : theme.colors.onSurfaceVariant} />}
                         render={props =>
-                            <MaskedTextInput
+                            <MaskInput
                                 {...props}
-                                type="currency"
-                                options={{
-                                    prefix: '$',
-                                    groupSeparator: '.',
-                                    precision: 0,
+                                onChangeText={(masked, unmasked) => {
+                                    setDocMonto(parseInt(unmasked))
                                 }}
-                                onChangeText={(formatted, extracted) => {
-                                    setDocMonto(parseInt(extracted))
-                                }}
+                                mask={dollarMask}
                             />
                         } />
                     <TextInput label='Proposito'
