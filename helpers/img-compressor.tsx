@@ -4,10 +4,10 @@ export const CompressAndResizeImage = async (imageUri: string, rotation: number)
     const resizeResult = await manipulateAsync(
         imageUri,
         [
-            { resize: { width: 720 } },
+            { resize: { width: 1080 } },
             { rotate: rotation },
         ],
-        { compress: 0.5, format: SaveFormat.JPEG }
+        { compress: 0.8, format: SaveFormat.JPEG }
     );
 
     if (resizeResult.uri) {
