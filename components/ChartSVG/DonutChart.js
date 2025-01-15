@@ -109,7 +109,7 @@ const DonutChart = ({
         </G>
       </Svg>
       <View style={styles.labelContainer}>
-        <Text style={styles.percentageText}>{`${Math.round(validPercentage)}%`}</Text>
+        <Text style={styles.percentageText}>{`${Math.round(percentage)}%`}</Text>
         <Text style={styles.labelText}>{label}</Text>
       </View>
     </View>
