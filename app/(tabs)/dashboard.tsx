@@ -70,7 +70,7 @@ const Dashboard = () => {
                     cancelTokenSourceRef.current.cancel('Component unmounted');
                 }
             };
-        }, [fetchData])
+        }, [])
     );
 
     const screenWidth = Dimensions.get('window').width;

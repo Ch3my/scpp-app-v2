@@ -1,6 +1,6 @@
 import { View, InteractionManager, FlatList } from "react-native"
-import { Link, useNavigation, Stack, router, useFocusEffect } from "expo-router";
-import { IconButton, useTheme, DataTable, Text, TextInput, Portal, Dialog, List, Button } from 'react-native-paper';
+import { Link, useNavigation, Stack, router, useFocusEffect, useSegments } from "expo-router";
+import { IconButton, useTheme, Text, TextInput, Portal, Dialog, List, Button } from 'react-native-paper';
 import { GetAppStyles } from "../../styles/styles"
 import { useEffect, useState, useContext, useCallback } from 'react';
 import axios, { AxiosResponse } from 'axios'
@@ -10,16 +10,17 @@ import numeral from "numeral"
 import "numeral/locales/es-es";
 
 import Reanimated, { Extrapolation, interpolate, LinearTransition, useAnimatedStyle } from "react-native-reanimated";
-import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import Animated from "react-native-reanimated";
 import ListDocsFilters from "../../components/ListDocsFilters";
+import DocRow from "../../components/DocRow";
+import DocHeader from "../../components/DocHeader";
 
 export default () => {
     numeral.locale("es-es")
 
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
-    const { sessionHash, apiPrefix } = useContext(ScppContext);
+    const { sessionHash, apiPrefix, refetchDocs, setRefetchdocs } = useContext(ScppContext);
     const [docsList, setDocsList] = useState<Documento[]>([])
 
     const [fechaInicio, setFechaInicio] = useState<DateTime | null>(DateTime.local().startOf("month"))
@@ -38,64 +39,6 @@ export default () => {
 
     const [showTipoDocFilter, setShowTipoDocFilter] = useState<boolean>(false)
     const [listOfTipoDoc, setListOfTipoDoc] = useState<TipoDoc[]>([])
-
-    // Para ejecutar algo cuando navegan a esta pantalla
-    // React Navigation runs its animations in native thread, so it's not a problem in many cases. But if the effect updates 
-    // the UI or renders something expensive, then it can affect the animation performance. In such cases, we can use InteractionManager 
-    // to defer our work until the animations or gestures have finished:
-    useFocusEffect(
-        useCallback(() => {
-            //useState<string>("Gastos") no se reseteaba al navegar de vuelta
-            //( si reseteaba pero no se veia en la UI)
-            // resetamos a mano para forzar la actualizacion
-            setTipoDocFilterName("Gastos")
-            setFechaInicio(DateTime.local().startOf("month"))
-            setFechaTermino(DateTime.local().endOf("month"))
-            setTipoDocFilterName("Gastos")
-            setCategoriaFilterName("(Todos)")
-            setSearchPhrase(undefined)
-
-            const task = InteractionManager.runAfterInteractions(() => {
-                getData(null, null, null, null, searchPhrase)
-            })
-            return () => task.cancel();
-        }, [useNavigation().isFocused()])
-    );
-
-    useEffect(() => {
-        const getTipoDoc = async () => {
-            try {
-                const response: AxiosResponse<any> = await axios.get(apiPrefix + '/tipo-docs', {
-                    params: {
-                        sessionHash
-                    }
-                });
-                if (response.data) {
-                    setListOfTipoDoc(response.data)
-                }
-            } catch (error) {
-                console.log(error);
-            }
-        };
-        getTipoDoc()
-    }, [])
-
-    const setFechaToTipoDoc = (fk_tipoDoc: number | null) => {
-        const currentDate = DateTime.local()
-        let newFecIni = currentDate.startOf('year')
-        let newFecTer = currentDate.endOf('year')
-        if (fk_tipoDoc == 1) {
-            newFecIni = currentDate.startOf('month')
-            newFecTer = currentDate.endOf('month')
-            // Gastos
-            setFechaInicio(newFecIni)
-            setFechaTermino(newFecTer)
-            return [newFecIni, newFecTer]
-        }
-        setFechaInicio(newFecIni)
-        setFechaTermino(newFecTer)
-        return [newFecIni, newFecTer]
-    }
 
     const getData = useCallback(async (aFechaInicio: DateTime | null,
         aFechaTermino: DateTime | null,
@@ -123,7 +66,7 @@ export default () => {
         if (afk_categoria) {
             localCategoriaId = afk_categoria
         }
-        if(localCategoriaId == -1) {
+        if (localCategoriaId == -1) {
             localCategoriaId = null
         }
 
@@ -158,8 +101,50 @@ export default () => {
         searchPhrase,
         sessionHash,
         apiPrefix,
-    ]
-    );
+    ]);
+
+    useEffect(() => {
+        const getTipoDoc = async () => {
+            try {
+                const response: AxiosResponse<any> = await axios.get(apiPrefix + '/tipo-docs', {
+                    params: {
+                        sessionHash
+                    }
+                });
+                if (response.data) {
+                    setListOfTipoDoc(response.data)
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        };
+        getTipoDoc()
+        getData(null, null, null, null, searchPhrase)
+    }, [])
+
+    useEffect(()=> {
+        if(refetchDocs == true) {
+            getData(null, null, null, null, searchPhrase)
+            setRefetchdocs(false)
+        }
+    }, [refetchDocs])
+
+    const setFechaToTipoDoc = (fk_tipoDoc: number | null) => {
+        const currentDate = DateTime.local()
+        let newFecIni = currentDate.startOf('year')
+        let newFecTer = currentDate.endOf('year')
+        if (fk_tipoDoc == 1) {
+            newFecIni = currentDate.startOf('month')
+            newFecTer = currentDate.endOf('month')
+            // Gastos
+            setFechaInicio(newFecIni)
+            setFechaTermino(newFecTer)
+            return [newFecIni, newFecTer]
+        }
+        setFechaInicio(newFecIni)
+        setFechaTermino(newFecTer)
+        return [newFecIni, newFecTer]
+    }
 
     const onUpdateTipoDoc = async ({ id, descripcion }: { id: number, descripcion: string }) => {
         let [newFecIni, newFecTer] = setFechaToTipoDoc(id)
@@ -252,9 +237,12 @@ export default () => {
                 </Reanimated.View>
             </Reanimated.View>
         )
-    },
-        [theme, router, getData, apiPrefix, sessionHash, appStyles]
-    );
+    }, []);
+
+    const renderItem = useCallback(
+        ({ item }: { item: Documento }) => (
+            <DocRow item={item} rightSwipe={rightSwipe} />
+        ), []);
 
     return (
         <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -283,11 +271,12 @@ export default () => {
                     </Dialog.ScrollArea>
                 </Dialog>
             </Portal>
-            <View style={{ justifyContent: "space-between", flexDirection: "row", backgroundColor: theme.colors.background }}>
+            <View style={{ justifyContent: "space-between", alignItems: "center", flexDirection: "row", backgroundColor: theme.colors.background }}>
                 <View style={appStyles.btnRow}>
                     <Link href="/docs/add-doc" asChild>
                         <IconButton
                             style={appStyles.btnRowBtn}
+                            size={30}
                             icon="plus"
                             mode="contained-tonal"
                             containerColor={theme.colors.primary}
@@ -296,6 +285,7 @@ export default () => {
                     </Link>
                     <IconButton
                         style={appStyles.btnRowBtn}
+                        size={30}
                         icon="filter"
                         mode="contained-tonal"
                         containerColor={theme.colors.primary}
@@ -303,9 +293,10 @@ export default () => {
                         onPress={() => { setShowFiltersModal(true) }}
                     />
                 </View>
+                <Text style={{ fontSize: 18 }}>$ {numeral(sumaTotalDocs).format('0,0')}</Text>
                 <View style={appStyles.btnRow}>
                     <TextInput label='Tipo Doc'
-                        style={{ width: 140 }}
+                        style={{ width: 120 }}
                         mode="outlined"
                         editable={false}
                         dense={true}
@@ -314,45 +305,18 @@ export default () => {
                     />
                 </View>
             </View>
-            <DataTable>
-                <DataTable.Header>
-                    <DataTable.Title style={{ flex: 0.5 }}>Fecha</DataTable.Title>
-                    <DataTable.Title>Proposito</DataTable.Title>
-                    <DataTable.Title numeric style={{ flex: 0.5 }}>Monto</DataTable.Title>
-                </DataTable.Header>
-            </DataTable>
-            {(docsList.length == 0 && !getDocsApiCalling) &&
-                <Text style={{ textAlign: 'center', marginTop: 20 }}>No hay Datos</Text>
-            }
             <Animated.FlatList
                 data={docsList}
                 onRefresh={() => { getData(null, null, null, null, searchPhrase) }}
                 refreshing={getDocsApiCalling}
+                stickyHeaderIndices={[0]}
+                ListHeaderComponent={<DocHeader />}
                 keyExtractor={(item) => item.id.toString()}
                 itemLayoutAnimation={LinearTransition}
-                renderItem={({ item }) => (
-                    <ReanimatedSwipeable
-                        renderRightActions={(progress, dragX) => rightSwipe(progress, dragX, item.id)}
-                        key={item.id}
-                        friction={1}
-                    >
-                        <View style={{ backgroundColor: theme.colors.background, flexDirection: 'row', padding: 10, alignItems: "center", borderBottomWidth: 1, borderBottomColor: theme.colors.surfaceVariant }}>
-                            <View style={{ flex: 0.6 }}>
-                                <Text style={appStyles.textFontSize}>{item.fecha}</Text>
-                            </View>
-                            <View style={{ flex: 1 }}>
-                                <Text style={appStyles.textFontSize}>{item.proposito}</Text>
-                            </View>
-                            <View style={{ flex: 0.6, alignSelf: "flex-end" }}>
-                                <Text style={[appStyles.textFontSize, { textAlign: "right" }]}>{numeral(item.monto).format("0,0")}</Text>
-                            </View>
-                        </View>
-                    </ReanimatedSwipeable>
-                )}
+                renderItem={renderItem}
+                ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 20 }}>No hay Datos</Text>}
+                initialNumToRender={15}
             />
-            <View style={appStyles.totalDiv} >
-                <Text style={appStyles.textFontSize}>Total $ {numeral(sumaTotalDocs).format('0,0')}</Text>
-            </View>
         </View>
 
     )

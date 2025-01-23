@@ -18,7 +18,7 @@ import MaskInput, { createNumberMask } from 'react-native-mask-input';
 export default () => {
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
-    const { sessionHash, apiPrefix } = useContext(ScppContext);
+    const { sessionHash, apiPrefix, setRefetchdocs } = useContext(ScppContext);
 
     const [showDocDatePicker, setShowDocDatePicker] = useState<boolean>(false)
     const [showCategoriaInput, setShowCategoriaInput] = useState<boolean>(true)
@@ -144,6 +144,7 @@ export default () => {
         }
         setSnackbarMsg("Documento guardado con Exito")
         setShowSnackBar(true)
+        setRefetchdocs(true)
     }
     
     const dollarMask = createNumberMask({
@@ -200,6 +201,7 @@ export default () => {
                     mode="contained-tonal"
                     containerColor={theme.colors.primary}
                     iconColor={theme.colors.onPrimary}
+                    size={30}
                     onPress={saveDoc}
                 />
             </View>

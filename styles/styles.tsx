@@ -20,11 +20,6 @@ export const GetAppStyles = (theme: any) => StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center'
     },
-    totalDiv: {
-        alignItems: 'flex-end',
-        padding: 15,
-        marginTop: 5
-    },
     textFontSize: {
         fontSize: 16
     }

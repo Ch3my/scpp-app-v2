@@ -5,7 +5,9 @@ type ScppContextType = {
     sessionHash: string;
     apiPrefix: string; // Updated variable name
     updateSessionHash: (value: string) => void;
-    isReady: boolean
+    setRefetchdocs: (value: boolean) => void;
+    isReady: boolean;
+    refetchDocs: boolean
 };
 
 type ScppProviderProps = {
@@ -16,7 +18,9 @@ export const ScppContext = createContext<ScppContextType>({
     sessionHash: "",
     apiPrefix: "https://scpp.lezora.cl",
     updateSessionHash: () => { },
-    isReady: false
+    isReady: false,
+    refetchDocs: false,
+    setRefetchdocs: () => { },
 });
 
 export const ScppProvider: React.FC<ScppProviderProps> = ({
@@ -25,6 +29,7 @@ export const ScppProvider: React.FC<ScppProviderProps> = ({
     const [sessionHash, setSessionHash] = useState<string>("");
     const [apiPrefix, setApiPrefix] = useState("https://scpp.lezora.cl");
     const [isReady, setIsReady] = useState(false);
+    const [refetchDocs, setRefetchdocs] = useState(false);
 
     // carga sesionhash si existe?
     useEffect(() => {
@@ -46,7 +51,7 @@ export const ScppProvider: React.FC<ScppProviderProps> = ({
 
     return (
         <ScppContext.Provider
-            value={{ sessionHash, apiPrefix, updateSessionHash, isReady }} // Updated variable name
+            value={{ sessionHash, apiPrefix, updateSessionHash, isReady, refetchDocs, setRefetchdocs }} // Updated variable name
         >
             {children}
         </ScppContext.Provider>

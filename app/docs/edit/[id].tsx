@@ -20,7 +20,7 @@ export default () => {
     const { id } = useLocalSearchParams();
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
-    const { sessionHash, apiPrefix } = useContext(ScppContext);
+    const { sessionHash, apiPrefix, setRefetchdocs } = useContext(ScppContext);
 
     const [showDocDatePicker, setShowDocDatePicker] = useState<boolean>(false);
     const [showCategoriaList, setShowCategoriaList] = useState<boolean>(false);
@@ -153,6 +153,7 @@ export default () => {
         }
         setSnackbarMsg("Documento editado con Exito")
         setShowSnackBar(true)
+        setRefetchdocs(true)
     }
 
     const dollarMask = createNumberMask({
@@ -209,6 +210,7 @@ export default () => {
                     mode="contained-tonal"
                     containerColor={theme.colors.primary}
                     iconColor={theme.colors.onPrimary}
+                    size={30}
                     onPress={updateDoc}
                 />
             </View>

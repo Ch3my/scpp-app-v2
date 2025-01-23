@@ -139,6 +139,7 @@ export default () => {
                     <IconButton
                         style={appStyles.btnRowBtn}
                         icon="plus"
+                        size={30}
                         mode="contained-tonal"
                         containerColor={theme.colors.primary}
                         iconColor={theme.colors.onPrimary}
@@ -147,6 +148,7 @@ export default () => {
                 <IconButton
                     style={appStyles.btnRowBtn}
                     icon="refresh"
+                    size={30}
                     mode="contained-tonal"
                     containerColor={theme.colors.primary}
                     iconColor={theme.colors.onPrimary}

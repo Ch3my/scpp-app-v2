@@ -16,6 +16,7 @@ import axios, { AxiosResponse } from 'axios'
 import { ScppContext } from "../ScppContext"
 import { ConvertToBase64 } from "../../helpers/base64-file-enconder"
 import { CompressAndResizeImage } from "../../helpers/img-compressor"
+import React from 'react';
 
 export default () => {
     // TODO manejar permiso denegado, mostrar mensaje, etc
@@ -198,6 +199,7 @@ export default () => {
                 <IconButton
                     style={appStyles.btnRowBtn}
                     icon="content-save"
+                    size={30}
                     mode="contained-tonal"
                     containerColor={theme.colors.primary}
                     iconColor={theme.colors.onPrimary}

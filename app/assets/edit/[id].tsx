@@ -136,6 +136,7 @@ export default () => {
                 <IconButton
                     style={appStyles.btnRowBtn}
                     icon="delete"
+                    size={30}
                     mode="contained-tonal"
                     containerColor={theme.colors.primary}
                     iconColor={theme.colors.onPrimary}
@@ -190,6 +191,7 @@ export default () => {
                     iconColor={theme.colors.onPrimaryContainer}
                     containerColor={theme.colors.primaryContainer}
                     mode="contained"
+                    size={30}
                     style={{ position: "absolute", right: 15, zIndex: 999 }}
                     onPress={closeImgModal} />
                 <GestureHandlerRootView style={{ flex: 1 }} >
