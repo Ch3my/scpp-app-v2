@@ -18,7 +18,7 @@ import MaskInput, { createNumberMask } from 'react-native-mask-input';
 export default () => {
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
-    const { sessionHash, apiPrefix, setRefetchdocs } = useContext(ScppContext);
+    const { sessionHash, apiPrefix, setRefetchdocs, tipoDocumentos, categorias } = useContext(ScppContext);
 
     const [showDocDatePicker, setShowDocDatePicker] = useState<boolean>(false)
     const [showCategoriaInput, setShowCategoriaInput] = useState<boolean>(true)
@@ -29,9 +29,6 @@ export default () => {
     const [snackbarMsg, setSnackbarMsg] = useState<string>("")
     const [negativeMonto, setNegativeMonto] = useState<boolean>(false)
 
-    const [listOfCategoria, setListOfCategoria] = useState<Categoria[]>([])
-    const [listOfTipoDoc, setListOfTipoDoc] = useState<TipoDoc[]>([])
-
     let [docDate, setDocDate] = useState<Date>(new Date())
     let [docCatId, setDocCatId] = useState<number | null>(1)
     let [docCatName, setDocCatName] = useState<string>("")
@@ -39,39 +36,6 @@ export default () => {
     let [docTipoDocName, setDocTipoDocName] = useState<string>("Gasto")
     let [docProposito, setDocProposito] = useState<string>("")
     let [docMonto, setDocMonto] = useState<number>(0)
-
-    useEffect(() => {
-        const getCategorias = async () => {
-            try {
-                const response: AxiosResponse<any> = await axios.get(apiPrefix + '/categorias', {
-                    params: {
-                        sessionHash
-                    }
-                });
-                if (response.data) {
-                    setListOfCategoria(response.data)
-                }
-            } catch (error) {
-                console.log(error);
-            }
-        };
-        const getTipoDoc = async () => {
-            try {
-                const response: AxiosResponse<any> = await axios.get(apiPrefix + '/tipo-docs', {
-                    params: {
-                        sessionHash
-                    }
-                });
-                if (response.data) {
-                    setListOfTipoDoc(response.data)
-                }
-            } catch (error) {
-                console.log(error);
-            }
-        };
-        getTipoDoc()
-        getCategorias();
-    }, [])
 
     const onChangeDocDatePicker = useCallback((event: any, selectedDate?: Date) => {
         setShowDocDatePicker(false)
@@ -146,7 +110,7 @@ export default () => {
         setShowSnackBar(true)
         setRefetchdocs(true)
     }
-    
+
     const dollarMask = createNumberMask({
         prefix: ['$', ' '],
         delimiter: '.',
@@ -171,7 +135,7 @@ export default () => {
                     <Dialog.Title>Categoria</Dialog.Title>
                     <Dialog.ScrollArea>
                         <FlatList
-                            data={listOfCategoria}
+                            data={categorias}
                             renderItem={({ item }) =>
                                 <List.Item
                                     title={item.descripcion}
@@ -184,7 +148,7 @@ export default () => {
                     <Dialog.Title>Tipo Documento</Dialog.Title>
                     <Dialog.ScrollArea>
                         <FlatList
-                            data={listOfTipoDoc}
+                            data={tipoDocumentos}
                             renderItem={({ item }) =>
                                 <List.Item
                                     title={item.descripcion}

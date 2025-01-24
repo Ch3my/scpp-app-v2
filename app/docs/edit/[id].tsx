@@ -20,7 +20,7 @@ export default () => {
     const { id } = useLocalSearchParams();
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
-    const { sessionHash, apiPrefix, setRefetchdocs } = useContext(ScppContext);
+    const { sessionHash, apiPrefix, setRefetchdocs, tipoDocumentos, categorias } = useContext(ScppContext);
 
     const [showDocDatePicker, setShowDocDatePicker] = useState<boolean>(false);
     const [showCategoriaList, setShowCategoriaList] = useState<boolean>(false);
@@ -29,9 +29,6 @@ export default () => {
     const [showSnackBar, setShowSnackBar] = useState<boolean>(false);
     const [snackbarMsg, setSnackbarMsg] = useState<string>("");
     const [negativeMonto, setNegativeMonto] = useState<boolean>(false)
-
-    const [listOfCategoria, setListOfCategoria] = useState<Categoria[]>([])
-    const [listOfTipoDoc, setListOfTipoDoc] = useState<TipoDoc[]>([])
 
     let [docDate, setDocDate] = useState<DateTime>(DateTime.local())
     let [docCatId, setDocCatId] = useState<number | null>(0)
@@ -73,37 +70,7 @@ export default () => {
                 console.log(error);
             }
         }
-        const getCategorias = async () => {
-            try {
-                const response: AxiosResponse<any> = await axios.get(apiPrefix + '/categorias', {
-                    params: {
-                        sessionHash
-                    }
-                });
-                if (response.data) {
-                    setListOfCategoria(response.data)
-                }
-            } catch (error) {
-                console.log(error);
-            }
-        };
-        const getTipoDoc = async () => {
-            try {
-                const response: AxiosResponse<any> = await axios.get(apiPrefix + '/tipo-docs', {
-                    params: {
-                        sessionHash
-                    }
-                });
-                if (response.data) {
-                    setListOfTipoDoc(response.data)
-                }
-            } catch (error) {
-                console.log(error);
-            }
-        };
         getOriginalDoc()
-        getTipoDoc()
-        getCategorias()
     }, [])
 
     const onChangeDocDatePicker = (selectedDate?: DateTime) => {
@@ -180,7 +147,7 @@ export default () => {
                     <Dialog.Title>Categoria</Dialog.Title>
                     <Dialog.ScrollArea>
                         <FlatList
-                            data={listOfCategoria}
+                            data={categorias}
                             renderItem={({ item }) =>
                                 <List.Item
                                     title={item.descripcion}
@@ -193,7 +160,7 @@ export default () => {
                     <Dialog.Title>Tipo Documento</Dialog.Title>
                     <Dialog.ScrollArea>
                         <FlatList
-                            data={listOfTipoDoc}
+                            data={tipoDocumentos}
                             renderItem={({ item }) =>
                                 <List.Item
                                     title={item.descripcion}

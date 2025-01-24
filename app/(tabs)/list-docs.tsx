@@ -1,6 +1,6 @@
-import { View, InteractionManager, FlatList } from "react-native"
-import { Link, useNavigation, Stack, router, useFocusEffect, useSegments } from "expo-router";
-import { IconButton, useTheme, Text, TextInput, Portal, Dialog, List, Button } from 'react-native-paper';
+import { View, Modal, FlatList, Pressable, TouchableOpacity } from "react-native"
+import { Link, Stack, router } from "expo-router";
+import { IconButton, useTheme, Text, TextInput, Portal, List, Button } from 'react-native-paper';
 import { GetAppStyles } from "../../styles/styles"
 import { useEffect, useState, useContext, useCallback } from 'react';
 import axios, { AxiosResponse } from 'axios'
@@ -20,7 +20,7 @@ export default () => {
 
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
-    const { sessionHash, apiPrefix, refetchDocs, setRefetchdocs } = useContext(ScppContext);
+    const { sessionHash, apiPrefix, refetchDocs, setRefetchdocs, tipoDocumentos, fetchAyudas } = useContext(ScppContext);
     const [docsList, setDocsList] = useState<Documento[]>([])
 
     const [fechaInicio, setFechaInicio] = useState<DateTime | null>(DateTime.local().startOf("month"))
@@ -38,7 +38,6 @@ export default () => {
     const [searchPhrase, setSearchPhrase] = useState<string | undefined>(undefined)
 
     const [showTipoDocFilter, setShowTipoDocFilter] = useState<boolean>(false)
-    const [listOfTipoDoc, setListOfTipoDoc] = useState<TipoDoc[]>([])
 
     const getData = useCallback(async (aFechaInicio: DateTime | null,
         aFechaTermino: DateTime | null,
@@ -104,26 +103,12 @@ export default () => {
     ]);
 
     useEffect(() => {
-        const getTipoDoc = async () => {
-            try {
-                const response: AxiosResponse<any> = await axios.get(apiPrefix + '/tipo-docs', {
-                    params: {
-                        sessionHash
-                    }
-                });
-                if (response.data) {
-                    setListOfTipoDoc(response.data)
-                }
-            } catch (error) {
-                console.log(error);
-            }
-        };
-        getTipoDoc()
+        fetchAyudas()
         getData(null, null, null, null, searchPhrase)
     }, [])
 
-    useEffect(()=> {
-        if(refetchDocs == true) {
+    useEffect(() => {
+        if (refetchDocs == true) {
             getData(null, null, null, null, searchPhrase)
             setRefetchdocs(false)
         }
@@ -247,29 +232,48 @@ export default () => {
     return (
         <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
             <Stack.Screen options={{ headerTitle: "Documentos" }} />
-            <ListDocsFilters visible={showFiltersModal}
-                initialFechaInicio={fechaInicio}
-                initialFechaTermino={fechaTermino}
-                initialCategoriaFilterName={categoriaFilterName}
-                initialSearchPhrase={searchPhrase}
-                onDismiss={() => {
-                    setShowFiltersModal(false)
-                }}
-                onFilterUpdate={onFilterUpdate} />
             <Portal>
-                <Dialog visible={showTipoDocFilter} onDismiss={() => { setShowTipoDocFilter(false) }}>
-                    <Dialog.Title>Tipo Documento</Dialog.Title>
-                    <Dialog.ScrollArea>
-                        <FlatList
-                            data={listOfTipoDoc}
-                            renderItem={({ item }) =>
-                                <List.Item
-                                    title={item.descripcion}
-                                    key={item.id}
-                                    onPress={() => { onUpdateTipoDoc({ id: item.id, descripcion: item.descripcion }) }} />
-                            } />
-                    </Dialog.ScrollArea>
-                </Dialog>
+                <ListDocsFilters visible={showFiltersModal}
+                    initialFechaInicio={fechaInicio}
+                    initialFechaTermino={fechaTermino}
+                    initialCategoriaFilterName={categoriaFilterName}
+                    initialSearchPhrase={searchPhrase}
+                    onDismiss={() => {
+                        setShowFiltersModal(false)
+                    }}
+                    onFilterUpdate={onFilterUpdate} />
+                <Modal
+                    visible={showTipoDocFilter}
+                    onRequestClose={() => setShowTipoDocFilter(false)}
+                    transparent={true}
+                    animationType="fade"
+                >
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                        <View
+                            style={{
+                                backgroundColor: theme.colors.background,
+                                padding: 20,
+                                borderRadius: 10,
+                                width: '80%',
+                                justifyContent: 'center',
+                                borderColor: theme.colors.secondary,
+                                borderWidth: 1,
+                            }}>
+                            <FlatList
+                                data={tipoDocumentos}
+                                renderItem={({ item }) => (
+                                    <TouchableOpacity
+                                        style={{ padding: 10, height: 50 }}
+                                        key={item.id}
+                                        onPress={() => onUpdateTipoDoc({ id: item.id, descripcion: item.descripcion })}
+                                    >
+                                        <Text style={appStyles.textFontSize}>{item.descripcion}</Text>
+                                    </TouchableOpacity>
+                                )}
+                            />
+                        </View>
+                    </View>
+                </Modal>
             </Portal>
             <View style={{ justifyContent: "space-between", alignItems: "center", flexDirection: "row", backgroundColor: theme.colors.background }}>
                 <View style={appStyles.btnRow}>
@@ -318,6 +322,5 @@ export default () => {
                 initialNumToRender={15}
             />
         </View>
-
     )
 }

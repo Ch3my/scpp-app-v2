@@ -1,7 +1,7 @@
 import React, { useState, useContext, useCallback, useRef } from 'react';
 import { useTheme, Text } from 'react-native-paper';
 import { ScrollView, Dimensions, InteractionManager, RefreshControl, View } from 'react-native';
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useNavigation } from "expo-router";
 import axios, { CancelTokenSource } from 'axios';
 import { ScppContext } from "../ScppContext";
 import LineChart from '../../components/ChartSVG/LineChart';

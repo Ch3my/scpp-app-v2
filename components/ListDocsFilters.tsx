@@ -96,13 +96,15 @@ export default ({
     return (
         <View>
             <Modal visible={visible} onRequestClose={onDismiss} transparent={true} animationType='slide'>
-                <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.3)' }}>
+                <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}>
                     <View style={{
                         padding: 20,
                         backgroundColor: theme.colors.surface,
                         borderTopLeftRadius: 15,
                         borderTopRightRadius: 15,
                         elevation: 5,
+                        borderColor: theme.colors.secondary,
+                        borderWidth: 1,
                     }}>
                         <Text variant="headlineSmall">Filtros</Text>
                         <TextInput

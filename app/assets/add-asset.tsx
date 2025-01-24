@@ -22,7 +22,7 @@ export default () => {
     // TODO manejar permiso denegado, mostrar mensaje, etc
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
-    const { sessionHash, apiPrefix, isReady } = useContext(ScppContext);
+    const { sessionHash, apiPrefix, categorias } = useContext(ScppContext);
 
     const [cameraPermission, setCameraPermission] = useState<string | null>(null);
     const [type, setType] = useState<CameraType>("back");
@@ -40,29 +40,14 @@ export default () => {
     let [assetDate, setAssetDate] = useState<Date>(new Date())
     let [assetCatId, setAssetCatId] = useState<number | null>(1)
     let [assetCatName, setAssetCatName] = useState<string>("")
-    const [listOfCategoria, setListOfCategoria] = useState<Categoria[]>([])
+    // const [listOfCategoria, setListOfCategoria] = useState<Categoria[]>([])
 
     useEffect(() => {
         const async = async () => {
             const cameraStatus = await Camera.requestCameraPermissionsAsync()
             setCameraPermission(cameraStatus.status)
         }
-        const getCategorias = async () => {
-            try {
-                const response: AxiosResponse<any> = await axios.get(apiPrefix + '/categorias', {
-                    params: {
-                        sessionHash
-                    }
-                });
-                if (response.data) {
-                    setListOfCategoria(response.data)
-                }
-            } catch (error) {
-                console.log(error);
-            }
-        };
         async()
-        getCategorias();
     }, [])
 
     const toggleCameraType = () => {
@@ -185,7 +170,7 @@ export default () => {
                     <Dialog.Title>Categoria</Dialog.Title>
                     <Dialog.ScrollArea>
                         <FlatList
-                            data={listOfCategoria}
+                            data={categorias}
                             renderItem={({ item }) =>
                                 <List.Item
                                     title={item.descripcion}
