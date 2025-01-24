@@ -102,7 +102,6 @@ const Dashboard = () => {
                 <Text variant="titleLarge" style={{ marginBottom: 10 }}>Resumen Categoría 12 Meses</Text>
                 <BarChart
                     dataset={barChartData.amounts}
-                    totalWidth={screenWidth}
                     labels={barChartData.labels}
                     labelsColor={theme.colors.onBackground}
                     yAxisPrefix='$ '

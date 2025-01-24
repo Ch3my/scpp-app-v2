@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import Svg, { G, Line, Text, Rect } from "react-native-svg";
+import React, { useEffect, useState, useMemo } from 'react';
+import Svg, { G, Line, Text, Rect } from 'react-native-svg';
 import { View, Dimensions } from 'react-native';
 import Animated, {
     useSharedValue,
@@ -14,24 +14,51 @@ const SVGPADDINGRIGHT = 90;
 
 const AnimatedRect = Animated.createAnimatedComponent(Rect);
 
-const BarChart = props => {
-    const [dimensions, setDimensions] = useState(Dimensions.get('window'));
+const BarChart = ({
+    yAxisPrefix,
+    labels,
+    dataset,
+    labelsColor,
+}) => {
+    const [dimensions, setDimensions] = useState(() => Dimensions.get('window'));
 
     useEffect(() => {
-        const subscription = Dimensions.addEventListener('change', ({ window }) => {
-            setDimensions(window);
-        });
+        const handleDimensionChange = ({ window }) => setDimensions(window);
+        const subscription = Dimensions.addEventListener('change', handleDimensionChange);
         return () => subscription?.remove();
-    });
+    }, []);
 
-    const chartWidth = dimensions.width - SVGPADDINGLEFT - SVGPADDINGRIGHT;
+    const chartWidth = useMemo(() => dimensions.width - SVGPADDINGLEFT - SVGPADDINGRIGHT, [dimensions]);
     const barHeight = 20;
     const barContainerHeight = barHeight * 1.5;
-    const chartHeight = barContainerHeight * props.labels.length;
+    const chartHeight = useMemo(() => barContainerHeight * labels.length, [labels, barContainerHeight]);
 
-    let labelsY = buildLabelsY(props.yAxisPrefix, props.labels, props.dataset, dimensions.width, props.labelsColor, barContainerHeight);
-    let lines = buildLinesXY(chartWidth, chartHeight, props.labelsColor);
-    let bars = buildBars(props.dataset, chartWidth, barHeight, barContainerHeight);
+    const maxBarWidth = useMemo(() => chartWidth - 20, [chartWidth]);
+    const maxValueDataset = useMemo(() => Math.max(...dataset), [dataset]);
+
+    const labelsY = useMemo(
+        () =>
+            buildLabelsY(
+                yAxisPrefix,
+                labels,
+                dataset,
+                dimensions.width,
+                labelsColor,
+                barContainerHeight
+            ),
+        [yAxisPrefix, labels, dataset, dimensions.width, labelsColor, barContainerHeight]
+    );
+
+    const lines = useMemo(
+        () => buildLinesXY(chartWidth, chartHeight, labelsColor),
+        [chartWidth, chartHeight, labelsColor]
+    );
+
+    const bars = useMemo(
+        () =>
+            buildBars(dataset, maxBarWidth, barHeight, barContainerHeight, maxValueDataset),
+        [dataset, maxBarWidth, barHeight, barContainerHeight, maxValueDataset]
+    );
 
     return (
         <View>
@@ -44,33 +71,53 @@ const BarChart = props => {
     );
 };
 
-const buildLinesXY = (chartWidth, chartHeight, labelsColor) => {
-    return (
-        <G>
-            <Line x1={SVGPADDINGLEFT} x2={chartWidth + SVGPADDINGLEFT} y1={chartHeight} y2={chartHeight} strokeWidth="1" stroke={labelsColor} />
-            <Line y1={chartHeight} y2={0} x1={SVGPADDINGLEFT} x2={SVGPADDINGLEFT} strokeWidth="1" stroke={labelsColor} />
-        </G>
-    );
-};
+const buildLinesXY = (chartWidth, chartHeight, labelsColor) => (
+    <G>
+        <Line
+            x1={SVGPADDINGLEFT}
+            x2={chartWidth + SVGPADDINGLEFT}
+            y1={chartHeight}
+            y2={chartHeight}
+            strokeWidth="1"
+            stroke={labelsColor}
+        />
+        <Line
+            y1={chartHeight}
+            y2={0}
+            x1={SVGPADDINGLEFT}
+            x2={SVGPADDINGLEFT}
+            strokeWidth="1"
+            stroke={labelsColor}
+        />
+    </G>
+);
 
 const buildLabelsY = (yAxisPrefix, labels, dataset, totalWidth, labelsColor, barContainerHeight) => {
-    if (!labels || labels.length === 0) {
-        return null;
-    }
-    return labels.map((l, index) => {
-        const yCordinate = (barContainerHeight * index) + (barContainerHeight / 2);
-        // Poner el <Text dentro de una View fue necesario para poder controlar el FontWeight
-        // Wrapping the Text components in a View might affect how React Native lays out the text and could reduce rendering issues:
+    if (!labels || labels.length === 0) return null;
+
+    return labels.map((label, index) => {
+        const yCoordinate = barContainerHeight * index + barContainerHeight / 2;
         return (
             <G key={index}>
-                <View>
-                    <Text y={yCordinate} textAnchor="start"
-                        fill={labelsColor} fontWeight="400" fontSize={14}>{l.slice(0, 12)}</Text>
-                </View>
-                <View>
-                    <Text x={totalWidth - SVGPADDINGRIGHT + 60} y={yCordinate} textAnchor="end"
-                        fill={labelsColor} fontWeight="400" fontSize={14}>{yAxisPrefix + numeral(dataset[index]).format('0,0')}</Text>
-                </View>
+                <Text
+                    y={yCoordinate}
+                    textAnchor="start"
+                    fill={labelsColor}
+                    fontWeight="400"
+                    fontSize={14}
+                >
+                    {label.slice(0, 12)}
+                </Text>
+                <Text
+                    x={totalWidth - SVGPADDINGRIGHT + 60}
+                    y={yCoordinate}
+                    textAnchor="end"
+                    fill={labelsColor}
+                    fontWeight="400"
+                    fontSize={14}
+                >
+                    {yAxisPrefix + numeral(dataset[index]).format('0,0')}
+                </Text>
             </G>
         );
     });
@@ -80,8 +127,7 @@ const AnimatedBar = ({ x, y, maxWidth, value, maxValue, fill, height }) => {
     const width = useSharedValue(0);
 
     useEffect(() => {
-        width.value = 0 // Without this bars dessapear on hot reload 
-        width.value = withTiming(maxWidth * (value / maxValue), {
+        width.value = withTiming((maxWidth * value) / maxValue, {
             duration: 1000,
             easing: Easing.out(Easing.cubic),
         });
@@ -102,25 +148,21 @@ const AnimatedBar = ({ x, y, maxWidth, value, maxValue, fill, height }) => {
     );
 };
 
-const buildBars = (dataset = [], chartWidth, barHeight, barContainerHeight) => {
-    if (!dataset || dataset.length === 0) {
-        return null;
-    }
-    const maxBarWidth = chartWidth - 20;
-    const maxValueDataset = Math.max(...dataset);
+const buildBars = (dataset, maxBarWidth, barHeight, barContainerHeight, maxValueDataset) => {
+    if (!dataset || dataset.length === 0) return null;
 
-    return dataset.map((d, index) => {
-        const yCordinate = (barContainerHeight * index) + ((barContainerHeight - barHeight) / 2);
+    return dataset.map((value, index) => {
+        const yCoordinate = barContainerHeight * index + (barContainerHeight - barHeight) / 2;
         // x={SVGPADDINGLEFT +1} el 1 es para que no quede la barra montada en la linea
         return (
             <AnimatedBar
                 key={index}
                 x={SVGPADDINGLEFT + 1}
-                y={yCordinate}
+                y={yCoordinate}
                 maxWidth={maxBarWidth}
-                value={d}
+                value={value}
                 maxValue={maxValueDataset}
-                fill='#75c2be'
+                fill="#75c2be"
                 height={barHeight}
             />
         );

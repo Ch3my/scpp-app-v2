@@ -30,6 +30,7 @@ const StartPage = () => {
                 const response = await fetch(apiPrefix + "/check-session?" + queryParams.toString())
                 const data = await response.json();
                 if (data.success) {
+                    fetchAyudas()
                     setRedirect("/dashboard");
                 }
                 setApiReady(true)
@@ -39,10 +40,6 @@ const StartPage = () => {
         }
         checkLoggedIn();
     }, [isReady])
-
-    useEffect(()=> {
-        fetchAyudas()
-    }, [])
 
     return (
         <View style={appStyles.container}>
