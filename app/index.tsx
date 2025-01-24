@@ -9,7 +9,7 @@ import { GetAppStyles } from "../styles/styles"
 const StartPage = () => {
     const [redirect, setRedirect] = useState("/entrance/login");
     const [apiReady, setApiReady] = useState(false);
-    const { sessionHash, apiPrefix, isReady } = useContext(ScppContext);
+    const { sessionHash, apiPrefix, isReady, fetchAyudas } = useContext(ScppContext);
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
 
@@ -39,6 +39,10 @@ const StartPage = () => {
         }
         checkLoggedIn();
     }, [isReady])
+
+    useEffect(()=> {
+        fetchAyudas()
+    }, [])
 
     return (
         <View style={appStyles.container}>

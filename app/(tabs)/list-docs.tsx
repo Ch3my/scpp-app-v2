@@ -20,7 +20,7 @@ export default () => {
 
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
-    const { sessionHash, apiPrefix, refetchDocs, setRefetchdocs, tipoDocumentos, fetchAyudas } = useContext(ScppContext);
+    const { sessionHash, apiPrefix, refetchDocs, setRefetchdocs, tipoDocumentos  } = useContext(ScppContext);
     const [docsList, setDocsList] = useState<Documento[]>([])
 
     const [fechaInicio, setFechaInicio] = useState<DateTime | null>(DateTime.local().startOf("month"))
@@ -103,7 +103,6 @@ export default () => {
     ]);
 
     useEffect(() => {
-        fetchAyudas()
         getData(null, null, null, null, searchPhrase)
     }, [])
 
