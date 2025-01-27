@@ -20,7 +20,7 @@ export default () => {
 
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
-    const { sessionHash, apiPrefix, refetchDocs, setRefetchdocs, tipoDocumentos  } = useContext(ScppContext);
+    const { sessionHash, apiPrefix, refetchDocs, setRefetchdocs, tipoDocumentos } = useContext(ScppContext);
     const [docsList, setDocsList] = useState<Documento[]>([])
 
     const [fechaInicio, setFechaInicio] = useState<DateTime | null>(DateTime.local().startOf("month"))
@@ -38,6 +38,7 @@ export default () => {
     const [searchPhrase, setSearchPhrase] = useState<string | undefined>(undefined)
 
     const [showTipoDocFilter, setShowTipoDocFilter] = useState<boolean>(false)
+    const [layoutReady, setLayoutReady] = useState(false);
 
     const getData = useCallback(async (aFechaInicio: DateTime | null,
         aFechaTermino: DateTime | null,
@@ -78,20 +79,22 @@ export default () => {
                     fk_categoria: localCategoriaId,
                     searchPhrase: aSearchPhrase,
                     sessionHash
-                }
+                }, 
             });
             if (response.data) {
                 setDocsList(response.data)
-                let suma = 0
-                for (let d of response.data) {
-                    suma += d.monto
-                }
-                setSumaTotalDocs(suma)
+                const suma = response.data.reduce((acc: number, doc: Documento) => acc + doc.monto, 0);
+                setSumaTotalDocs(suma);
             }
         } catch (error) {
-            console.log(error);
+            if (axios.isCancel(error)) {
+                console.log("Request canceled:", error.message);
+            } else {
+                console.error("Error fetching data:", error);
+            }
+        } finally {
+            setGetDocsApiCalling(false)
         }
-        setGetDocsApiCalling(false)
     }, [
         fechaInicio,
         fechaTermino,
@@ -103,8 +106,10 @@ export default () => {
     ]);
 
     useEffect(() => {
-        getData(null, null, null, null, searchPhrase)
-    }, [])
+        if (layoutReady) {
+            getData(null, null, null, null, searchPhrase);
+        }
+    }, [layoutReady]);
 
     useEffect(() => {
         if (refetchDocs == true) {
@@ -229,7 +234,7 @@ export default () => {
         ), []);
 
     return (
-        <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+        <View style={{ flex: 1, backgroundColor: theme.colors.background }} onLayout={() => setLayoutReady(true)}>
             <Stack.Screen options={{ headerTitle: "Documentos" }} />
             <Portal>
                 <ListDocsFilters visible={showFiltersModal}
