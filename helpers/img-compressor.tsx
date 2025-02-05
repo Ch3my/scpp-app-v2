@@ -1,18 +1,32 @@
-import { SaveFormat, manipulateAsync } from 'expo-image-manipulator';
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 
-export const CompressAndResizeImage = async (imageUri: string, rotation: number): Promise<string> => {
-    const resizeResult = await manipulateAsync(
-        imageUri,
-        [
-            { resize: { width: 1080 } },
-            { rotate: rotation },
-        ],
-        { compress: 0.8, format: SaveFormat.JPEG }
-    );
+export async function CompressAndResizeImage(
+  imageUri: string,
+  rotation: number
+): Promise<string> {
+  try {
+    // Create an ImageManipulator context from the URI
+    const context = ImageManipulator.manipulate(imageUri)
+      // Resize to a width (height is automatically scaled)
+      .resize({ width: 1280 })
+      // Rotate by the specified angle
+      .rotate(rotation);
 
-    if (resizeResult.uri) {
-        return resizeResult.uri;
+    // Render the transformations asynchronously and get a reference to the new image
+    const imageRef = await context.renderAsync();
+
+    // Finally, save the transformed image with compression and format
+    const { uri } = await imageRef.saveAsync({
+      compress: 0.8,
+      format: SaveFormat.JPEG,
+    });
+
+    if (uri) {
+      return uri;
     } else {
-        throw new Error('Error compressing and resizing image');
+      throw new Error('Error compressing and resizing image');
     }
-};
+  } catch (error) {
+    throw new Error(`Error compressing and resizing image: ${error}`);
+  }
+}

@@ -58,7 +58,7 @@ export default () => {
         setCameraWorking(true)
         if (cameraRef.current) {
             try {
-                const photo = await cameraRef.current.takePictureAsync();
+                const photo = await cameraRef.current.takePictureAsync({ shutterSound: false });
                 setPhotoLocation(photo?.uri)
                 setShowCamera(false)
             } catch (error) {
