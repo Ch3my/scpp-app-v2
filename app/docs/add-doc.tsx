@@ -24,6 +24,7 @@ export default () => {
     const [showCategoriaInput, setShowCategoriaInput] = useState<boolean>(true)
     const [showCategoriaList, setShowCategoriaList] = useState<boolean>(false)
     const [showTipoDocList, setShowTipoDocList] = useState<boolean>(false)
+    const [apiCalling, setApiCalling] = useState<boolean>(false)
 
     const [showSnackBar, setShowSnackBar] = useState<boolean>(false)
     const [snackbarMsg, setSnackbarMsg] = useState<string>("")
@@ -60,20 +61,24 @@ export default () => {
         }
     }, [])
     const saveDoc = async () => {
+        setApiCalling(true)
         setShowSnackBar(false)
         if (docTipoDocId == 1 && docCatId == 0) {
             setSnackbarMsg("Selecciona la categoria")
             setShowSnackBar(true)
+            setApiCalling(false)
             return
         }
         if (docProposito == "") {
             setSnackbarMsg("Ingresa Proposito")
             setShowSnackBar(true)
+            setApiCalling(false)
             return
         }
         if (docTipoDocId == 1 && docMonto == 0) {
             setSnackbarMsg("Ingresa el Monto")
             setShowSnackBar(true)
+            setApiCalling(false)
             return
         }
 
@@ -104,11 +109,13 @@ export default () => {
         if (response.data.hasErrors) {
             setSnackbarMsg("Error al guardar documento")
             setShowSnackBar(true)
+            setApiCalling(false)
             return
         }
         setSnackbarMsg("Documento guardado con Exito")
         setShowSnackBar(true)
         setRefetchdocs(true)
+        setApiCalling(false)
     }
 
     const dollarMask = createNumberMask({
@@ -167,6 +174,7 @@ export default () => {
                     iconColor={theme.colors.onPrimary}
                     size={30}
                     onPress={saveDoc}
+                    disabled={apiCalling}
                 />
             </View>
             <View style={appStyles.container}>
