@@ -39,7 +39,7 @@ const Dashboard = () => {
                     cancelToken: cancelTokenSourceRef.current.token
                 }),
                 axios.get<ExpensesByCategoryData>(`${apiPrefix}/expenses-by-category`, {
-                    params: { sessionHash, nMonths: 5 },
+                    params: { sessionHash, nMonths: 13 },
                     cancelToken: cancelTokenSourceRef.current.token
                 })
             ]);
@@ -99,7 +99,7 @@ const Dashboard = () => {
                 <DashboardDonut shouldRefresh={refreshing} />
             </View>
             <View style={{ marginBottom: 30 }}>
-                <Text variant="titleLarge" style={{ marginBottom: 10 }}>Resumen Categoría 12 Meses</Text>
+                <Text variant="titleLarge" style={{ marginBottom: 10 }}>Resumen Categoría 13 Meses</Text>
                 <BarChart
                     dataset={barChartData.amounts}
                     labels={barChartData.labels}
