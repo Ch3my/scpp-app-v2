@@ -29,6 +29,7 @@ export default () => {
     const [showSnackBar, setShowSnackBar] = useState<boolean>(false);
     const [snackbarMsg, setSnackbarMsg] = useState<string>("");
     const [negativeMonto, setNegativeMonto] = useState<boolean>(false)
+    const [apiCalling, setApiCalling] = useState<boolean>(false)
 
     let [docDate, setDocDate] = useState<DateTime>(DateTime.local())
     let [docCatId, setDocCatId] = useState<number | null>(0)
@@ -96,6 +97,7 @@ export default () => {
         }
     }
     const updateDoc = async () => {
+        setApiCalling(true)
         let computedMonto = docMonto
         if (negativeMonto) {
             computedMonto *= -1
@@ -116,11 +118,13 @@ export default () => {
         if (response.data.hasErrors) {
             setSnackbarMsg("Error al editar documento")
             setShowSnackBar(true)
+            setApiCalling(false)
             return
         }
         setSnackbarMsg("Documento editado con Exito")
         setShowSnackBar(true)
         setRefetchdocs(true)
+        setApiCalling(false)
     }
 
     const dollarMask = createNumberMask({
@@ -179,6 +183,7 @@ export default () => {
                     iconColor={theme.colors.onPrimary}
                     size={30}
                     onPress={updateDoc}
+                    disabled={apiCalling}
                 />
             </View>
             <ScrollView style={appStyles.container}>
