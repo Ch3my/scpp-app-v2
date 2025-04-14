@@ -39,12 +39,14 @@ export default () => {
 
     const [showTipoDocFilter, setShowTipoDocFilter] = useState<boolean>(false)
     const [layoutReady, setLayoutReady] = useState(false);
+    const [searchPhraseIgnoreOtherFilters, setSearchPhraseIgnoreOtherFilters] = useState(true);
 
     const getData = useCallback(async (aFechaInicio: DateTime | null,
         aFechaTermino: DateTime | null,
         afk_tipoDoc: number | null,
         afk_categoria: number | null,
-        aSearchPhrase: string | undefined) => {
+        aSearchPhrase: string | undefined,
+        aSearchPhraseIgnoreOtherFilters: boolean) => {
         // Si vienen argumentos usamos argumentos, sino usamos el estado
         // como se hace queue de los setState el argumento (si existe) esta mas actualizado el que State
         setGetDocsApiCalling(true)
@@ -69,7 +71,10 @@ export default () => {
         if (localCategoriaId == -1) {
             localCategoriaId = null
         }
-
+        let localSearchPhraseIgnoreOtherFilters = searchPhraseIgnoreOtherFilters
+        if (aSearchPhraseIgnoreOtherFilters) {
+            localSearchPhraseIgnoreOtherFilters = aSearchPhraseIgnoreOtherFilters
+        }
         try {
             const response: AxiosResponse<any> = await axios.get(apiPrefix + '/documentos', {
                 params: {
@@ -78,8 +83,9 @@ export default () => {
                     fk_tipoDoc: localTipoDocId,
                     fk_categoria: localCategoriaId,
                     searchPhrase: aSearchPhrase,
+                    searchPhraseIgnoreOtherFilters: aSearchPhraseIgnoreOtherFilters,
                     sessionHash
-                }, 
+                },
             });
             if (response.data) {
                 setDocsList(response.data)
@@ -107,13 +113,13 @@ export default () => {
 
     useEffect(() => {
         if (layoutReady) {
-            getData(null, null, null, null, searchPhrase);
+            getData(null, null, null, null, searchPhrase, false);
         }
     }, [layoutReady]);
 
     useEffect(() => {
         if (refetchDocs == true) {
-            getData(null, null, null, null, searchPhrase)
+            getData(null, null, null, null, searchPhrase, false)
             setRefetchdocs(false)
         }
     }, [refetchDocs])
@@ -140,26 +146,29 @@ export default () => {
         setTipoDocFilterId(id)
         setTipoDocFilterName(descripcion)
         setShowTipoDocFilter(false)
-        getData(newFecIni, newFecTer, id, null, searchPhrase)
+        getData(newFecIni, newFecTer, id, null, searchPhrase, false)
     }
 
     const onFilterUpdate = ({
         searchPhrase,
         categoriaFilterId,
         fechaInicio,
-        fechaTermino
+        fechaTermino,
+        searchPhraseIgnoreOtherFilters
     }: {
         searchPhrase: string | undefined;
         categoriaFilterId: number | null;
         fechaInicio: DateTime | null;
         fechaTermino: DateTime | null;
+        searchPhraseIgnoreOtherFilters: boolean;
     }) => {
         setSearchPhrase(searchPhrase)
         setFechaInicio(fechaInicio)
         setFechaTermino(fechaTermino)
         setCategoriaFilterId(categoriaFilterId)
+        setSearchPhraseIgnoreOtherFilters(searchPhraseIgnoreOtherFilters)
         // NOTA este searchPhrase es el local de la funcion, no el estado
-        getData(fechaInicio, fechaTermino, null, categoriaFilterId, searchPhrase)
+        getData(fechaInicio, fechaTermino, null, categoriaFilterId, searchPhrase, searchPhraseIgnoreOtherFilters)
     }
 
     const rightSwipe = useCallback((progress: any, dragX: any, id: number) => {
@@ -201,7 +210,7 @@ export default () => {
             // TODO. Update suma Total o lo hace getData luego
             try {
                 await axios.delete(apiPrefix + '/documentos', { data: { id, sessionHash } })
-                getData(null, null, null, null, searchPhrase)
+                getData(null, null, null, null, searchPhrase, false)
             } catch (error) {
                 console.log(error)
             }
@@ -315,7 +324,7 @@ export default () => {
             </View>
             <Animated.FlatList
                 data={docsList}
-                onRefresh={() => { getData(null, null, null, null, searchPhrase) }}
+                onRefresh={() => { getData(null, null, null, null, searchPhrase, false) }}
                 refreshing={getDocsApiCalling}
                 stickyHeaderIndices={[0]}
                 ListHeaderComponent={<DocHeader />}

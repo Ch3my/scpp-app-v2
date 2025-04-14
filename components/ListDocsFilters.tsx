@@ -1,4 +1,4 @@
-import { IconButton, useTheme, Text, TextInput, Button } from 'react-native-paper';
+import { Checkbox, useTheme, Text, TextInput, Button, Icon } from 'react-native-paper';
 import { useEffect, useState, useContext, useCallback } from 'react';
 import { DateTime } from "luxon";
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -15,6 +15,7 @@ interface FiltersModalProps {
         categoriaFilterId: number | null;
         fechaInicio: DateTime | null;
         fechaTermino: DateTime | null;
+        searchPhraseIgnoreOtherFilters: boolean;
     }) => void;
     initialSearchPhrase: string | undefined;
     initialCategoriaFilterName: string;
@@ -40,6 +41,7 @@ export default ({
     const [showFechaTerminoPicker, setShowFechaTerminoPicker] = useState<boolean>(false)
     const [categoriaFilterId, setCategoriaFilterId] = useState<number | null>(null)
     const [listOfCategoria, setListOfCategoria] = useState<Categoria[]>([])
+    const [searchPhraseIgnoreOtherFilters, setSearchPhraseIgnoreOtherFilters] = useState(true);
 
     useEffect(() => {
         const getCategorias = async () => {
@@ -88,7 +90,8 @@ export default ({
             searchPhrase,
             categoriaFilterId,
             fechaInicio,
-            fechaTermino
+            fechaTermino,
+            searchPhraseIgnoreOtherFilters
         });
         onDismiss()
     };
@@ -107,13 +110,23 @@ export default ({
                         borderWidth: 1,
                     }}>
                         <Text variant="headlineSmall">Filtros</Text>
-                        <TextInput
-                            style={{ marginBottom: 5 }}
-                            label="Buscar"
-                            mode="flat"
-                            dense={true}
-                            value={searchPhrase}
-                            onChangeText={setSearchPhrase} />
+                        <View style={{ display: "flex", gap: 5, flexDirection: "row", marginBottom: 5, alignItems: "center" }}>
+                            <TextInput
+                                style={{ flex: 1 }}
+                                label="Buscar"
+                                mode="flat"
+                                dense={true}
+                                value={searchPhrase}
+                                onChangeText={setSearchPhrase} />
+                            <Icon source="filter-off" size={28} />
+                            <Checkbox
+                                status={searchPhraseIgnoreOtherFilters ? 'checked' : 'unchecked'}
+
+                                onPress={() => {
+                                    setSearchPhraseIgnoreOtherFilters(!searchPhraseIgnoreOtherFilters);
+                                }}
+                            />
+                        </View>
                         <TextInput
                             style={{ marginBottom: 5 }}
                             label="Fecha Inicio"
