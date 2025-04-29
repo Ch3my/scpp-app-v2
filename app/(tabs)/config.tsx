@@ -4,7 +4,7 @@ import {
     List
 } from 'react-native-paper';
 import { ScrollView, View } from "react-native"
-import { Link, useNavigation, Redirect, Stack, router } from "expo-router";
+import { Link, useNavigation, Redirect, Stack, router, useRouter } from "expo-router";
 import { ScppContext } from "../ScppContext"
 import { ScppThemeContext } from '../ScppThemeContext';
 import { useState, useContext } from 'react';
@@ -17,6 +17,8 @@ export default () => {
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
     const { sessionHash, apiPrefix } = useContext(ScppContext);
+    const router = useRouter();
+
     const logout = async () => {
         let response: any = {}
         try {
@@ -32,14 +34,15 @@ export default () => {
             console.log("Error al cerrar la sesion")
             return
         }
-        if(await DeleteData("sessionHash")) {
+        if (await DeleteData("sessionHash")) {
             router.replace('/entrance/login');
         }
     }
 
     return (
         <ScrollView style={appStyles.container}>
-            <Stack.Screen options={{ headerTitle: "Config" }} />
+            <Stack.Screen options={{ headerTitle: "Mas opciones" }} />
+            <List.Item title="Lista Food Storage" onPress={() => router.push("/food/food-list")} />
             <List.Item title={'Tema Activo: ' + themeName} onPress={() => toggleTheme()} />
             <List.Item title="Salir" onPress={() => logout()} />
         </ScrollView>

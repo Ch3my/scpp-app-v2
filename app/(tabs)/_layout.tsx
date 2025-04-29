@@ -41,7 +41,7 @@ export default () => {
             />
             <Tabs.Screen
                 name="config"
-                options={getTabScreenOptions("Config", "cog")}
+                options={getTabScreenOptions("Config", "ellipsis-h")}
             />
         </Tabs>
     );
