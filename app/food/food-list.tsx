@@ -42,6 +42,9 @@ const FoodList: React.FC = () => {
     }
 
     const renderItem = ({ item }: any) => {
+        const formattedDate = item.lastTransactionAt
+        ? item.lastTransactionAt.toFormat("dd-MM-yyyy")
+        : '';
         return (
             <View
                 style={{
@@ -55,9 +58,9 @@ const FoodList: React.FC = () => {
                 }}
             >
                 <Text style={[appStyles.textFontSize, { flex: 1 }]}>{item.name}</Text>
-                <Text style={[appStyles.textFontSize, { textAlign: 'right', flex: 1 }]}>{item.quantity}</Text>
-                <Text style={[appStyles.textFontSize, { flex: 1 }]}>{item.unit}</Text>
-                <Text style={[appStyles.textFontSize, { flex: 1 }]}>{item.lastTransactionAt}</Text>
+                <Text style={[appStyles.textFontSize, { textAlign: 'right', flex: 0.5 }]}>{item.quantity}</Text>
+                <Text style={[appStyles.textFontSize, { flex: 0.5 }]}>{item.unit}</Text>
+                <Text style={[appStyles.textFontSize, { flex: 0.8 }]}>{formattedDate}</Text>
             </View>
         );
     }
@@ -76,9 +79,9 @@ const FoodList: React.FC = () => {
                 }}
             >
                 <Text style={[appStyles.textFontSize, { flex: 1 }]}>Nombre</Text>
-                <Text style={[appStyles.textFontSize, { textAlign: 'right', flex: 1 }]}>Cantidad</Text>
-                <View style={{ flex: 1 }}></View>
-                <Text style={[appStyles.textFontSize, { flex: 1 }]}>Actividad</Text>
+                <Text style={[appStyles.textFontSize, { textAlign: 'right', flex: 0.5 }]}>Cant</Text>
+                <View style={{ flex: 0.5 }}></View>
+                <Text style={[appStyles.textFontSize, { flex: 0.8 }]}>Actividad</Text>
             </View>
         )
     }
