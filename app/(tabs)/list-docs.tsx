@@ -14,6 +14,7 @@ import Animated from "react-native-reanimated";
 import ListDocsFilters from "../../components/ListDocsFilters";
 import DocRow from "../../components/DocRow";
 import DocHeader from "../../components/DocHeader";
+import { Documento } from "../../models/Documento";
 
 export default () => {
     numeral.locale("es-es")

@@ -8,6 +8,7 @@ import { ScppContext } from "../ScppContext"
 
 import Reanimated, { Extrapolation, interpolate, useAnimatedStyle } from "react-native-reanimated";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+import { Asset } from "../../models/Asset";
 
 export default () => {
     const theme = useTheme();

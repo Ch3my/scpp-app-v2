@@ -1,4 +1,4 @@
-interface MonthlyGraphData  {
+export interface MonthlyGraphData  {
     labels: string[]
     gastosDataset: number[]
     ingresosDataset: number[]

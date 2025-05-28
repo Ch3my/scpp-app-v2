@@ -19,6 +19,8 @@ const StackLayout: React.FC = () => {
                 <PaperProvider theme={paperTheme}>
                     <StatusBar style={statusBarStyle} />
                     <Stack>
+                        {/* Had to add index here first, otherwise index.tsx did not execute in SDK 53 */}
+                        <Stack.Screen name="index"/>
                         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                     </Stack>
                 </PaperProvider>

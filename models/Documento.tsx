@@ -1,4 +1,6 @@
-interface Documento {
+import { Categoria } from "./Categoria"
+
+export interface Documento {
     id: number
     fk_tipoDoc: number
     proposito: string

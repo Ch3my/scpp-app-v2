@@ -1,4 +1,4 @@
-interface Asset {
+export interface Asset {
     id: number;
     descripcion: string;
     fecha: string;

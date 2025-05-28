@@ -7,6 +7,8 @@ import { ScppContext } from "../ScppContext";
 import LineChart from '../../components/ChartSVG/LineChart';
 import BarChart from '../../components/ChartSVG/BarChart';
 import DashboardDonut from '../../components/DashboardDonut';
+import { MonthlyGraphData } from '../../models/MonthlyGraphData';
+import { ExpensesByCategoryData } from '../../models/ExpensesByCategoryData';
 
 const Dashboard = () => {
     const theme = useTheme();
