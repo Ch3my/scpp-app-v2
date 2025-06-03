@@ -9,10 +9,13 @@ import BarChart from '../../components/ChartSVG/BarChart';
 import DashboardDonut from '../../components/DashboardDonut';
 import { MonthlyGraphData } from '../../models/MonthlyGraphData';
 import { ExpensesByCategoryData } from '../../models/ExpensesByCategoryData';
+import { DateTime } from 'luxon';
+import { GetAppStyles } from '../../styles/styles';
 
 const Dashboard = () => {
     const theme = useTheme();
     const { sessionHash, apiPrefix } = useContext(ScppContext);
+    const appStyles = GetAppStyles(theme)
     const [refreshing, setRefreshing] = useState(false);
     const [monthlyGraphData, setMonthlyGraphData] = useState<MonthlyGraphData>({
         labels: [],
@@ -23,7 +26,11 @@ const Dashboard = () => {
     const [barChartData, setBarChartData] = useState<ExpensesByCategoryData>({
         labels: [],
         amounts: [],
-        data: []
+        data: [],
+        range: {
+            start: '',
+            end: ''
+        }
     });
 
     const cancelTokenSourceRef = useRef<CancelTokenSource | null>(null);
@@ -41,7 +48,7 @@ const Dashboard = () => {
                     cancelToken: cancelTokenSourceRef.current.token
                 }),
                 axios.get<ExpensesByCategoryData>(`${apiPrefix}/expenses-by-category`, {
-                    params: { sessionHash, nMonths: 13 },
+                    params: { sessionHash, nMonths: 12 },
                     cancelToken: cancelTokenSourceRef.current.token
                 })
             ]);
@@ -101,7 +108,15 @@ const Dashboard = () => {
                 <DashboardDonut shouldRefresh={refreshing} />
             </View>
             <View style={{ marginBottom: 30 }}>
-                <Text variant="titleLarge" style={{ marginBottom: 10 }}>Resumen Categoría 13 Meses</Text>
+                <Text variant="titleLarge">Resumen Categoría</Text>
+                <Text style={{ marginBottom: 10 }}>
+                    {barChartData.range.start !== "" && barChartData.range.end !== "" && (
+                        <Text style={appStyles.textFontSize}>
+                            {DateTime.fromISO(barChartData.range.start).toLocaleString({ month: 'long', year: 'numeric' })} -
+                            {DateTime.fromISO(barChartData.range.end).toLocaleString({ month: 'long', year: 'numeric' })}
+                        </Text>
+                    )}
+                </Text>
                 <BarChart
                     dataset={barChartData.amounts}
                     labels={barChartData.labels}

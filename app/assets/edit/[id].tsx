@@ -1,6 +1,7 @@
 import {
     StyleSheet, TouchableOpacity,
-    View, ScrollView, Image, Modal
+    View, ScrollView, Image, Modal,
+    SafeAreaView
 } from 'react-native';
 import { Link, Stack, router } from "expo-router";
 import { useEffect, useState, useRef, useContext } from 'react';
@@ -107,7 +108,7 @@ export default () => {
 
     // Sin GestureHandlerRootView dentro de modal no se ejecutaban los gestos
     return (
-        <View style={{ flex: 1 }}>
+        <SafeAreaView style={{ flex: 1 }}>
             <Stack.Screen options={{ headerTitle: "Ver Asset" }} />
             <Portal>
                 <Snackbar
@@ -207,6 +208,6 @@ export default () => {
                     </View>
                 </GestureHandlerRootView>
             </Modal>
-        </View>
+        </SafeAreaView>
     )
 }

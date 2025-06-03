@@ -1,6 +1,7 @@
 
 import {
-    StyleSheet, View, ScrollView, FlatList
+    StyleSheet, View, ScrollView, FlatList,
+    SafeAreaView
 } from 'react-native';
 import { Stack } from "expo-router";
 import { useEffect, useState, useRef, useContext, useCallback } from 'react';
@@ -126,7 +127,7 @@ export default () => {
     })
 
     return (
-        <View style={{ flex: 1 }}>
+        <SafeAreaView style={{ flex: 1 }}>
             <Stack.Screen options={{ headerTitle: "Agregar Documento" }} />
             <Portal>
                 <Snackbar
@@ -238,6 +239,6 @@ export default () => {
                     }
                 </ScrollView>
             </View>
-        </View>
+        </SafeAreaView>
     )
 }

@@ -1,6 +1,7 @@
 import {
     View, ScrollView, Image, FlatList,
-    Modal, Text
+    Modal, Text,
+    SafeAreaView
 } from 'react-native';
 import { Stack } from "expo-router";
 import { useEffect, useState, useRef, useContext, useCallback } from 'react';
@@ -132,7 +133,7 @@ export default () => {
     }, []);
 
     return (
-        <View style={{ flex: 1 }}>
+        <SafeAreaView style={{ flex: 1 }}>
             <Stack.Screen options={{ headerTitle: "Agregar Asset" }} />
             <Modal
                 animationType="slide"
@@ -248,6 +249,6 @@ export default () => {
                 }
 
             </ScrollView>
-        </View>
+        </SafeAreaView>
     )
 }
