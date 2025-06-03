@@ -1,11 +1,13 @@
 import { Checkbox, useTheme, Text, TextInput, Button, Icon } from 'react-native-paper';
-import { useEffect, useState, useContext, useCallback } from 'react';
+import { useEffect, useState, useContext, useCallback, useRef, useMemo } from 'react';
 import { DateTime } from "luxon";
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { FlatList, Modal, View } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import axios, { AxiosResponse } from 'axios';
 import { ScppContext } from "../app/ScppContext"
 import { Picker } from '@react-native-picker/picker';
+import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
+import { Categoria } from '../models/Categoria';
 
 interface FiltersModalProps {
     visible: boolean;
@@ -17,10 +19,10 @@ interface FiltersModalProps {
         fechaTermino: DateTime | null;
         searchPhraseIgnoreOtherFilters: boolean;
     }) => void;
-    initialSearchPhrase: string | undefined;
+    initialSearchPhrase?: string; // Made optional as per initial value
     initialCategoriaFilterName: string;
-    initialFechaInicio: DateTime | null;
-    initialFechaTermino: DateTime | null;
+    initialFechaInicio?: DateTime | null; // Made optional
+    initialFechaTermino?: DateTime | null; // Made optional
 }
 
 export default ({
@@ -33,6 +35,12 @@ export default ({
 }: FiltersModalProps) => {
     const theme = useTheme();
     const { sessionHash, apiPrefix } = useContext(ScppContext);
+
+    const bottomSheetRef = useRef<BottomSheet>(null);
+
+    // snapPoints for the BottomSheet. You can adjust these values as needed.
+    // '25%' means 25% of the screen height, '50%' means 50%, etc.
+    const snapPoints = useMemo(() => ['50%'], []);
 
     const [searchPhrase, setSearchPhrase] = useState<string | undefined>(initialSearchPhrase)
     const [fechaInicio, setFechaInicio] = useState<DateTime | null>(initialFechaInicio)
@@ -65,7 +73,15 @@ export default ({
         }
 
         getCategorias()
-    }, [])
+    }, [apiPrefix, sessionHash])
+
+    useEffect(() => {
+        if (visible) {
+            bottomSheetRef.current?.snapToIndex(0); // or .snapToIndex(0) to go to the first snap point
+        } else {
+            bottomSheetRef.current?.close();
+        }
+    }, [visible]);
 
     const onChangeFechaIniFilter = useCallback((event: any, selectedDate?: Date) => {
         setShowFechaInicioPicker(false)
@@ -96,88 +112,105 @@ export default ({
         onDismiss()
     };
 
+    // Callback to handle sheet changes, effectively dismissing the modal when it's closed
+    const handleSheetChanges = useCallback((index: number) => {
+        if (index === -1) {
+            onDismiss();
+        }
+    }, [onDismiss]);
+
+    const renderBackDrop = useCallback((props: any) => (
+        <BottomSheetBackdrop
+            appearsOnIndex={0}
+            disappearsOnIndex={-1}
+            {...props}
+        />
+    ), []);
+
     return (
-        <View>
-            <Modal visible={visible} onRequestClose={onDismiss} transparent={true} animationType='slide'>
-                <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                    <View style={{
-                        padding: 20,
-                        backgroundColor: theme.colors.surface,
-                        borderTopLeftRadius: 15,
-                        borderTopRightRadius: 15,
-                        elevation: 5,
-                        borderColor: theme.colors.secondary,
-                        borderWidth: 1,
-                    }}>
-                        <Text variant="headlineSmall">Filtros</Text>
-                        <View style={{ display: "flex", gap: 5, flexDirection: "row", marginBottom: 5, alignItems: "center" }}>
-                            <TextInput
-                                style={{ flex: 1 }}
-                                label="Buscar"
-                                mode="flat"
-                                dense={true}
-                                value={searchPhrase}
-                                onChangeText={setSearchPhrase} />
-                            <Icon source="filter-off" size={28} />
-                            <Checkbox
-                                status={searchPhraseIgnoreOtherFilters ? 'checked' : 'unchecked'}
-
-                                onPress={() => {
-                                    setSearchPhraseIgnoreOtherFilters(!searchPhraseIgnoreOtherFilters);
-                                }}
-                            />
-                        </View>
-                        <TextInput
-                            style={{ marginBottom: 5 }}
-                            label="Fecha Inicio"
-                            mode="flat"
-                            dense={true}
-                            editable={false}
-                            value={fechaInicio?.toFormat('yyyy-MM-dd')}
-                            right={<TextInput.Icon icon="calendar" onPress={() => { setShowFechaInicioPicker(true) }} />}
-                        />
-                        {(showFechaInicioPicker && fechaInicio) && (
-                            <DateTimePicker value={fechaInicio.toJSDate()} mode="date"
-                                display="default" onChange={onChangeFechaIniFilter}
-                            />
-                        )}
-                        <TextInput
-                            style={{ marginBottom: 5 }}
-                            label="Fecha Termino"
-                            mode="flat"
-                            dense={true}
-                            editable={false}
-                            value={fechaTermino?.toFormat('yyyy-MM-dd')}
-                            right={<TextInput.Icon icon="calendar" onPress={() => {
-                                setShowFechaTerminoPicker(true)
-                            }} />}
-                        />
-                        {(showFechaTerminoPicker && fechaTermino) && (
-                            <DateTimePicker value={fechaTermino.toJSDate()} mode="date"
-                                display="default" onChange={onChangeFechaTerminoFilter}
-                            />
-                        )}
-                        <Text variant="bodyMedium">Categoria</Text>
-                        <Picker
-                            selectedValue={categoriaFilterId}
-                            style={{ backgroundColor: theme.colors.surfaceVariant, color: theme.colors.onSurfaceVariant, marginBottom: 5 }}
-                            mode='dropdown'
-                            onValueChange={(itemValue, itemIndex) =>
-                                setCategoriaFilterId(itemValue)
-                            }>
-                            {listOfCategoria.map((categoria) => (
-                                <Picker.Item
-                                    key={categoria.id ?? "default"} // Provide a unique key, fallback to 'default' if `id` is null
-                                    label={categoria.descripcion}
-                                    value={categoria.id}
-                                />
-                            ))}
-                        </Picker>
-                        <Button onPress={handleFilterUpdate}>LISTO</Button>
-                    </View>
+        <BottomSheet
+            ref={bottomSheetRef}
+            index={-1} // -1 means hidden
+            backdropComponent={renderBackDrop}
+            snapPoints={snapPoints}
+            enablePanDownToClose={true} // Allows closing by swiping down
+            onClose={onDismiss} // Callback when the sheet is closed via pan down or programmatically
+            onChange={handleSheetChanges}
+            backgroundStyle={{ backgroundColor: theme.colors.surface, borderColor: theme.colors.secondary, borderWidth: 1 }}
+            handleIndicatorStyle={{ backgroundColor: theme.colors.onSurface }}
+        >
+            <BottomSheetView style={styles.contentContainer}>
+                <Text variant="headlineSmall" style={{ marginBottom: 10 }}>Filtros</Text>
+                <View style={{ flexDirection: "row", marginBottom: 5, alignItems: "center" }}>
+                    <TextInput
+                        style={{ flex: 1 }}
+                        label="Buscar"
+                        mode="flat"
+                        dense={true}
+                        value={searchPhrase}
+                        onChangeText={setSearchPhrase} />
+                    <Icon source="filter-off" size={28} />
+                    <Checkbox
+                        status={searchPhraseIgnoreOtherFilters ? 'checked' : 'unchecked'}
+                        onPress={() => {
+                            setSearchPhraseIgnoreOtherFilters(!searchPhraseIgnoreOtherFilters);
+                        }}
+                    />
                 </View>
-            </Modal >
-        </View>
-
+                <TextInput
+                    style={{ marginBottom: 5 }}
+                    label="Fecha Inicio"
+                    mode="flat"
+                    dense={true}
+                    editable={false}
+                    value={fechaInicio?.toFormat('yyyy-MM-dd')}
+                    right={<TextInput.Icon icon="calendar" onPress={() => { setShowFechaInicioPicker(true) }} />}
+                />
+                {(showFechaInicioPicker && fechaInicio) && (
+                    <DateTimePicker value={fechaInicio.toJSDate()} mode="date"
+                        display="default" onChange={onChangeFechaIniFilter}
+                    />
+                )}
+                <TextInput
+                    style={{ marginBottom: 5 }}
+                    label="Fecha Termino"
+                    mode="flat"
+                    dense={true}
+                    editable={false}
+                    value={fechaTermino?.toFormat('yyyy-MM-dd')}
+                    right={<TextInput.Icon icon="calendar" onPress={() => {
+                        setShowFechaTerminoPicker(true)
+                    }} />}
+                />
+                {(showFechaTerminoPicker && fechaTermino) && (
+                    <DateTimePicker value={fechaTermino.toJSDate()} mode="date"
+                        display="default" onChange={onChangeFechaTerminoFilter}
+                    />
+                )}
+                <Text variant="bodyMedium">Categoria</Text>
+                <Picker
+                    selectedValue={categoriaFilterId}
+                    style={{ backgroundColor: theme.colors.surfaceVariant, color: theme.colors.onSurfaceVariant, marginBottom: 5 }}
+                    mode='dropdown'
+                    onValueChange={(itemValue, itemIndex) =>
+                        setCategoriaFilterId(itemValue)
+                    }>
+                    {listOfCategoria.map((categoria) => (
+                        <Picker.Item
+                            key={categoria.id ?? "default"}
+                            label={categoria.descripcion}
+                            value={categoria.id}
+                        />
+                    ))}
+                </Picker>
+                <Button onPress={handleFilterUpdate}>LISTO</Button>
+            </BottomSheetView>
+        </BottomSheet>
     )
 }
+
+const styles = StyleSheet.create({
+    contentContainer: {
+        padding: 20,
+    },
+});
