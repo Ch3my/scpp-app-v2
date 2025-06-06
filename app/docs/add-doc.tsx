@@ -127,7 +127,7 @@ export default () => {
     })
 
     return (
-        <SafeAreaView style={{ flex: 1 }}>
+        <View style={{ flex: 1 }}>
             <Stack.Screen options={{ headerTitle: "Agregar Documento" }} />
             <Portal>
                 <Snackbar
@@ -239,6 +239,6 @@ export default () => {
                     }
                 </ScrollView>
             </View>
-        </SafeAreaView>
+        </View>
     )
 }
