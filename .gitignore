@@ -11,6 +11,7 @@ npm-debug.*
 web-build/
 .vscode
 %ProgramData%
+credentials.json
 
 # macOS
 .DS_Store
