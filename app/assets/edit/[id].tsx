@@ -128,9 +128,8 @@ export default () => {
                     }}>NO</AppButton>
                 </AppDialog.Actions>
             </AppDialog>
-            <View style={[appStyles.btnRow]}>
+            <View style={[appStyles.btnRow, { paddingHorizontal: 7, paddingTop: 7 }]}>
                 <AppIconButton
-                    style={appStyles.btnRowBtn}
                     icon="delete"
                     size={30}
                     mode="contained-tonal"

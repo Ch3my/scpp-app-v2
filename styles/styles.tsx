@@ -8,13 +8,9 @@ export const GetAppStyles = (theme: any) => StyleSheet.create({
     },
     btnRow: {
         flexDirection: "row",
-        justifyContent: "flex-start",
         backgroundColor: theme.colors.background,
-        paddingVertical: 2,
-        paddingHorizontal: 10
-    },
-    btnRowBtn: {
-        marginHorizontal: 5
+        gap: 7,
+        // backgroundColor: "red"
     },
     centerContentContainer: {
         alignItems: 'center',

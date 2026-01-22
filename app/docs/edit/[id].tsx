@@ -1,9 +1,8 @@
 import {
     Text, TouchableOpacity,
     View, ScrollView,
-    SafeAreaView,
-    FlatList
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from "expo-router";
 import { useEffect, useState, useContext } from 'react';
 import { GetAppStyles } from "../../../styles/styles"
@@ -138,7 +137,7 @@ export default () => {
     })
 
     return (
-        <SafeAreaView style={{ flex: 1 }} >
+        <SafeAreaView style={{ flex: 1 }}  >
             <Stack.Screen options={{ headerTitle: "Editar Documento" }} />
             <AppSnackbar
                 duration={2500}
@@ -172,9 +171,8 @@ export default () => {
                         </TouchableOpacity>
                     } />
             </AppDialog>
-            <View style={appStyles.btnRow}>
+            <View style={[appStyles.btnRow, { paddingHorizontal: 7, paddingTop: 7 }]}>
                 <AppIconButton
-                    style={appStyles.btnRowBtn}
                     icon="content-save"
                     mode="contained-tonal"
                     containerColor={theme.colors.primary}

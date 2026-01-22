@@ -207,7 +207,6 @@ export default () => {
             <Reanimated.View style={containerStyle}>
                 <View style={{ flex: 1, backgroundColor: theme.colors.error, justifyContent: 'center', alignItems: 'center' }}>
                     <AppIconButton
-                        style={appStyles.btnRowBtn}
                         icon="delete"
                         iconColor={theme.colors.onError}
                         onPress={() => { deleteDoc() }}
@@ -273,11 +272,10 @@ export default () => {
                     </View>
                 </View>
             </Modal>
-            <View style={{ justifyContent: "space-between", alignItems: "center", flexDirection: "row", backgroundColor: theme.colors.background }}>
+            <View style={{ justifyContent: "space-between", alignItems: "center", flexDirection: "row", backgroundColor: theme.colors.background, paddingHorizontal:7 }}>
                 <View style={appStyles.btnRow}>
                     <Link href="/docs/add-doc" asChild>
                         <AppIconButton
-                            style={appStyles.btnRowBtn}
                             size={30}
                             icon="plus"
                             mode="contained-tonal"
@@ -287,7 +285,6 @@ export default () => {
                         />
                     </Link>
                     <AppIconButton
-                        style={appStyles.btnRowBtn}
                         size={30}
                         icon="filter"
                         mode="contained-tonal"

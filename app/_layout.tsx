@@ -5,6 +5,7 @@ import { ScppThemeProvider, ScppThemeContext } from "./ScppThemeContext";
 import { ScppProvider } from "./ScppContext";
 import { ThemeProvider } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 const StackLayout: React.FC = () => {
     const { navTheme, themeName } = useContext(ScppThemeContext);
@@ -15,10 +16,10 @@ const StackLayout: React.FC = () => {
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
             <ThemeProvider value={navTheme}>
-                <StatusBar style={statusBarStyle} />
+                <StatusBar style={statusBarStyle} translucent={false} backgroundColor={navTheme.colors.card} />
                 <Stack>
                     {/* Had to add index here first, otherwise index.tsx did not execute in SDK 53 */}
-                    <Stack.Screen name="index"/>
+                    <Stack.Screen name="index" />
                     <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                 </Stack>
             </ThemeProvider>
@@ -29,11 +30,13 @@ const StackLayout: React.FC = () => {
 // App component to wrap providers and optimize context rendering
 const App: React.FC = () => {
     return (
-        <ScppProvider>
-            <ScppThemeProvider>
-                <StackLayout />
-            </ScppThemeProvider>
-        </ScppProvider>
+        <SafeAreaProvider>
+            <ScppProvider>
+                <ScppThemeProvider>
+                    <StackLayout />
+                </ScppThemeProvider>
+            </ScppProvider>
+        </SafeAreaProvider>
     );
 };
 

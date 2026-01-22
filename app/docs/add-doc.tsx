@@ -138,18 +138,15 @@ export default () => {
             </AppSnackbar>
             <AppDialog visible={showCategoriaList} onDismiss={() => { setShowCategoriaList(false) }}>
                 <AppDialog.Title>Categoria</AppDialog.Title>
-                <AppDialog.ScrollArea>
-                    <FlatList
-                        data={categorias}
-                        renderItem={({ item }) =>
-                            <TouchableOpacity
-                                style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: theme.colors.outlineVariant }}
-                                key={item.id}
-                                onPress={() => { onUpdateCategoria({ id: item.id, descripcion: item.descripcion }) }}>
-                                <Text style={appStyles.textFontSize}>{item.descripcion}</Text>
-                            </TouchableOpacity>
-                        } />
-                </AppDialog.ScrollArea>
+                <AppDialog.ListArea data={categorias}
+                    renderItem={({ item }) =>
+                        <TouchableOpacity
+                            style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: theme.colors.outlineVariant }}
+                            key={item.id}
+                            onPress={() => { onUpdateCategoria({ id: item.id, descripcion: item.descripcion }) }}>
+                            <Text style={appStyles.textFontSize}>{item.descripcion}</Text>
+                        </TouchableOpacity>
+                    } />
             </AppDialog>
             <AppDialog visible={showTipoDocList} onDismiss={() => { setShowTipoDocList(false) }}>
                 <AppDialog.Title>Tipo Documento</AppDialog.Title>
@@ -166,10 +163,10 @@ export default () => {
                         } />
                 </AppDialog.ScrollArea>
             </AppDialog>
+            <View style={appStyles.container}>
             <View style={appStyles.btnRow}>
                 <AppIconButton
-                    style={appStyles.btnRowBtn}
-                    icon="content-save"
+                    icon="content-save"     
                     mode="contained-tonal"
                     containerColor={theme.colors.primary}
                     iconColor={theme.colors.onPrimary}
@@ -178,7 +175,6 @@ export default () => {
                     disabled={apiCalling}
                 />
             </View>
-            <View style={appStyles.container}>
                 <ScrollView>
                     <View style={{
                         marginVertical: 4,

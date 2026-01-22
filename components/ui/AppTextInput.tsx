@@ -79,8 +79,8 @@ export const AppTextInput: React.FC<AppTextInputProps> = ({
     borderColor: getBorderColor(),
     backgroundColor: mode === 'flat' ? colors.surfaceVariant : 'transparent',
     paddingHorizontal: 12,
-    paddingTop: label ? (dense ? 20 : 24) : (dense ? 8 : 12),
-    paddingBottom: dense ? 8 : 12,
+    paddingTop: label ? (dense ? 18 : 24) : (dense ? 6 : 12),
+    paddingBottom: dense ? 2 : 12,
     opacity: disabled ? 0.5 : 1,
   };
 

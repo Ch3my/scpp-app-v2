@@ -177,9 +177,8 @@ export default () => {
                     }
                 />
             </AppDialog>
-            <View style={[appStyles.btnRow]}>
+            <View style={[appStyles.btnRow, { paddingHorizontal: 7, paddingTop: 7 }]}>
                 <AppIconButton
-                    style={appStyles.btnRowBtn}
                     icon="content-save"
                     size={30}
                     mode="contained-tonal"

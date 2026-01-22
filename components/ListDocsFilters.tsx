@@ -46,7 +46,7 @@ export default ({
 
     // snapPoints for the BottomSheet. You can adjust these values as needed.
     // '25%' means 25% of the screen height, '50%' means 50%, etc.
-    const snapPoints = useMemo(() => ['50%'], []);
+    const snapPoints = useMemo(() => ['60%'], []);
 
     const [searchPhrase, setSearchPhrase] = useState<string | undefined>(initialSearchPhrase)
     const [fechaInicio, setFechaInicio] = useState<DateTime | null>(initialFechaInicio)

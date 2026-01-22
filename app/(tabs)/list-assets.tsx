@@ -80,7 +80,6 @@ export default () => {
             <Reanimated.View style={containerStyle}>
                 <View style={{ flex: 1, backgroundColor: theme.colors.error, justifyContent: 'center', alignItems: 'center' }}>
                     <AppIconButton
-                        style={appStyles.btnRowBtn}
                         icon="delete"
                         iconColor={theme.colors.onError}
                         onPress={() => {
@@ -119,10 +118,9 @@ export default () => {
                     }}>NO</AppButton>
                 </AppDialog.Actions>
             </AppDialog>
-            <View style={appStyles.btnRow}>
+            <View style={[appStyles.btnRow, { paddingHorizontal: 7, paddingTop: 7 }]}>
                 <Link href="/assets/add-asset" asChild>
                     <AppIconButton
-                        style={appStyles.btnRowBtn}
                         icon="plus"
                         size={30}
                         mode="contained-tonal"
@@ -132,7 +130,6 @@ export default () => {
                     />
                 </Link>
                 <AppIconButton
-                    style={appStyles.btnRowBtn}
                     icon="refresh"
                     size={30}
                     mode="contained-tonal"
