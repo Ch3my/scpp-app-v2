@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, StyleSheet } from 'react-native';
-import { Text, useTheme } from "react-native-paper"
+import { View, StyleSheet, Text } from 'react-native';
+import { useTheme } from "../../app/ScppThemeContext"
 import Svg, { Circle, G } from 'react-native-svg';
 import Animated, {
   useSharedValue,
@@ -109,8 +109,8 @@ const DonutChart = ({
         </G>
       </Svg>
       <View style={styles.labelContainer}>
-        <Text style={styles.percentageText}>{`${Math.round(percentage)}%`}</Text>
-        <Text style={styles.labelText}>{label}</Text>
+        <Text style={[styles.percentageText, { color: theme.colors.onBackground }]}>{`${Math.round(percentage)}%`}</Text>
+        <Text style={[styles.labelText, { color: theme.colors.onBackground }]}>{label}</Text>
       </View>
     </View>
   );

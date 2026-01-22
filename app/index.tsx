@@ -3,7 +3,7 @@ import { useRouter } from "expo-router"; // Programmatic navigation
 import { ScppContext } from "./ScppContext";
 import { Stack } from "expo-router";
 import { View, Image } from "react-native";
-import { useTheme } from "react-native-paper";
+import { useTheme } from "./ScppThemeContext";
 import { GetAppStyles } from "../styles/styles";
 
 const StartPage = () => {

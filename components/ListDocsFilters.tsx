@@ -1,13 +1,18 @@
-import { Checkbox, useTheme, Text, TextInput, Button, Icon } from 'react-native-paper';
 import { useEffect, useState, useContext, useCallback, useRef, useMemo } from 'react';
 import { DateTime } from "luxon";
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 import axios, { AxiosResponse } from 'axios';
 import { ScppContext } from "../app/ScppContext"
 import { Picker } from '@react-native-picker/picker';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
 import { Categoria } from '../models/Categoria';
+import { useTheme } from '../app/ScppThemeContext';
+import { AppTextInput } from './ui/AppTextInput';
+import { AppCheckbox } from './ui/AppCheckbox';
+import { AppButton } from './ui/AppButton';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { GetAppStyles } from '../styles/styles';
 
 interface FiltersModalProps {
     visible: boolean;
@@ -34,6 +39,7 @@ export default ({
     initialFechaTermino = DateTime.local().endOf("month")
 }: FiltersModalProps) => {
     const theme = useTheme();
+    const appStyles = GetAppStyles(theme);
     const { sessionHash, apiPrefix } = useContext(ScppContext);
 
     const bottomSheetRef = useRef<BottomSheet>(null);
@@ -140,54 +146,55 @@ export default ({
             handleIndicatorStyle={{ backgroundColor: theme.colors.onSurface }}
         >
             <BottomSheetView style={styles.contentContainer}>
-                <Text variant="headlineSmall" style={{ marginBottom: 10 }}>Filtros</Text>
+                <Text style={[appStyles.headlineSmall, { marginBottom: 10 }]}>Filtros</Text>
                 <View style={{ flexDirection: "row", marginBottom: 5, alignItems: "center" }}>
-                    <TextInput
+                    <AppTextInput
                         style={{ flex: 1 }}
                         label="Buscar"
                         mode="flat"
                         dense={true}
                         value={searchPhrase}
-                        onChangeText={setSearchPhrase} />
-                    <Icon source="filter-off" size={28} />
-                    <Checkbox
+                        onChangeText={setSearchPhrase}
+                    />
+                    <MaterialCommunityIcons name="filter-off" size={28} color={theme.colors.onSurfaceVariant} />
+                    <AppCheckbox
                         status={searchPhraseIgnoreOtherFilters ? 'checked' : 'unchecked'}
                         onPress={() => {
                             setSearchPhraseIgnoreOtherFilters(!searchPhraseIgnoreOtherFilters);
                         }}
                     />
                 </View>
-                <TextInput
+                <AppTextInput
                     style={{ marginBottom: 5 }}
                     label="Fecha Inicio"
                     mode="flat"
                     dense={true}
                     editable={false}
                     value={fechaInicio?.toFormat('yyyy-MM-dd')}
-                    right={<TextInput.Icon icon="calendar" onPress={() => { setShowFechaInicioPicker(true) }} />}
+                    rightIcon="calendar"
+                    onRightIconPress={() => { setShowFechaInicioPicker(true) }}
                 />
                 {(showFechaInicioPicker && fechaInicio) && (
                     <DateTimePicker value={fechaInicio.toJSDate()} mode="date"
                         display="default" onChange={onChangeFechaIniFilter}
                     />
                 )}
-                <TextInput
+                <AppTextInput
                     style={{ marginBottom: 5 }}
                     label="Fecha Termino"
                     mode="flat"
                     dense={true}
                     editable={false}
                     value={fechaTermino?.toFormat('yyyy-MM-dd')}
-                    right={<TextInput.Icon icon="calendar" onPress={() => {
-                        setShowFechaTerminoPicker(true)
-                    }} />}
+                    rightIcon="calendar"
+                    onRightIconPress={() => { setShowFechaTerminoPicker(true) }}
                 />
                 {(showFechaTerminoPicker && fechaTermino) && (
                     <DateTimePicker value={fechaTermino.toJSDate()} mode="date"
                         display="default" onChange={onChangeFechaTerminoFilter}
                     />
                 )}
-                <Text variant="bodyMedium">Categoria</Text>
+                <Text style={appStyles.bodyMedium}>Categoria</Text>
                 <Picker
                     selectedValue={categoriaFilterId}
                     style={{ backgroundColor: theme.colors.surfaceVariant, color: theme.colors.onSurfaceVariant, marginBottom: 5 }}
@@ -203,7 +210,7 @@ export default ({
                         />
                     ))}
                 </Picker>
-                <Button onPress={handleFilterUpdate}>LISTO</Button>
+                <AppButton onPress={handleFilterUpdate}>LISTO</AppButton>
             </BottomSheetView>
         </BottomSheet>
     )

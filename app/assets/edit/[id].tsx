@@ -1,21 +1,23 @@
 import {
-    StyleSheet, TouchableOpacity,
-    View, ScrollView, Image, Modal,
+    TouchableOpacity,
+    View, ScrollView, Image, Modal, Text,
     SafeAreaView
 } from 'react-native';
-import { Link, Stack, router } from "expo-router";
-import { useEffect, useState, useRef, useContext } from 'react';
+import { Stack, router } from "expo-router";
+import { useEffect, useState, useContext } from 'react';
 import { GetAppStyles } from "../../../styles/styles"
-import {
-    IconButton, useTheme, Button, TextInput,
-    Portal, Dialog, Snackbar, Text
-} from 'react-native-paper';
+import { useTheme } from '../../ScppThemeContext';
+import { AppIconButton } from '../../../components/ui/AppIconButton';
+import { AppButton } from '../../../components/ui/AppButton';
+import { AppTextInput } from '../../../components/ui/AppTextInput';
+import { AppDialog } from '../../../components/ui/AppDialog';
+import { AppSnackbar } from '../../../components/ui/AppSnackbar';
 import { DateTime } from "luxon";
 import axios, { AxiosResponse } from 'axios'
 import { ScppContext } from "../../ScppContext"
 import { useLocalSearchParams } from 'expo-router';
-import { Gesture, GestureDetector, GestureHandlerRootView, GestureEvent } from 'react-native-gesture-handler';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated"
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import Animated, { useAnimatedStyle, useSharedValue } from "react-native-reanimated"
 
 export default () => {
     const theme = useTheme();
@@ -82,8 +84,7 @@ export default () => {
         lastX.value = 0
         lastY.value = 0
     }
-    // https://github.com/kesha-antonov/react-native-zoom-reanimated/blob/main/index.tsx#L208 
-    // puede ser una opcion, ya lo habia hecho asi que namas
+
     const panGesture = Gesture.Pan()
         .onUpdate((e) => {
             positionX.value = lastX.value + e.translationX;
@@ -106,35 +107,29 @@ export default () => {
         transform: [{ translateX: positionX.value }, { translateY: positionY.value }, { scale: scale.value }],
     }));
 
-    // Sin GestureHandlerRootView dentro de modal no se ejecutaban los gestos
     return (
         <SafeAreaView style={{ flex: 1 }}>
             <Stack.Screen options={{ headerTitle: "Ver Asset" }} />
-            <Portal>
-                <Snackbar
-                    duration={2500}
-                    visible={showSnackBar}
-                    style={{ zIndex: 999 }}
-                    onDismiss={() => { setShowSnackBar(false) }}>
-                    {snackbarMsg}
-                </Snackbar>
-            </Portal>
-            <Portal>
-                <Dialog visible={showConfirmDelete} onDismiss={() => { setShowConfirmDelete(false) }}>
-                    <Dialog.Title>Confirme por Favor</Dialog.Title>
-                    <Dialog.Content>
-                        <Text variant="bodyMedium">¿Seguro que quiere eliminar el registro?</Text>
-                    </Dialog.Content>
-                    <Dialog.Actions>
-                        <Button onPress={deleteAsset}>SI</Button>
-                        <Button onPress={() => {
-                            setShowConfirmDelete(false)
-                        }}>NO</Button>
-                    </Dialog.Actions>
-                </Dialog>
-            </Portal>
+            <AppSnackbar
+                duration={2500}
+                visible={showSnackBar}
+                onDismiss={() => { setShowSnackBar(false) }}>
+                {snackbarMsg}
+            </AppSnackbar>
+            <AppDialog visible={showConfirmDelete} onDismiss={() => { setShowConfirmDelete(false) }}>
+                <AppDialog.Title>Confirme por Favor</AppDialog.Title>
+                <AppDialog.Content>
+                    <Text style={appStyles.bodyMedium}>¿Seguro que quiere eliminar el registro?</Text>
+                </AppDialog.Content>
+                <AppDialog.Actions>
+                    <AppButton mode="text" onPress={deleteAsset}>SI</AppButton>
+                    <AppButton mode="text" onPress={() => {
+                        setShowConfirmDelete(false)
+                    }}>NO</AppButton>
+                </AppDialog.Actions>
+            </AppDialog>
             <View style={[appStyles.btnRow]}>
-                <IconButton
+                <AppIconButton
                     style={appStyles.btnRowBtn}
                     icon="delete"
                     size={30}
@@ -145,7 +140,7 @@ export default () => {
                 />
             </View>
             <ScrollView style={appStyles.container}>
-                <TextInput label='Descripción'
+                <AppTextInput label='Descripción'
                     style={{ marginBottom: 5 }}
                     editable={false}
                     mode="flat"
@@ -153,7 +148,7 @@ export default () => {
                     value={assetDescription}
                     autoCapitalize="none"
                     onChangeText={text => setAssetDescription(text)} />
-                <TextInput
+                <AppTextInput
                     style={{ marginBottom: 5 }}
                     label="Fecha"
                     mode="flat"
@@ -161,7 +156,7 @@ export default () => {
                     editable={false}
                     value={assetDate.toFormat('yyyy-MM-dd')}
                 />
-                <TextInput
+                <AppTextInput
                     style={{ marginBottom: 5 }}
                     label="Categoria"
                     mode="flat"
@@ -188,7 +183,7 @@ export default () => {
                 visible={showImgModal}
                 transparent={true}
                 onRequestClose={closeImgModal}>
-                <IconButton icon="close"
+                <AppIconButton icon="close"
                     iconColor={theme.colors.onPrimaryContainer}
                     containerColor={theme.colors.primaryContainer}
                     mode="contained"

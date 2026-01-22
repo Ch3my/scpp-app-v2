@@ -1,11 +1,11 @@
 import React, { memo, useMemo } from 'react';
-import { View } from 'react-native';
-import { Text, useTheme } from 'react-native-paper';
+import { View, Text } from 'react-native';
+import { useTheme } from '../app/ScppThemeContext';
 import { GetAppStyles } from "../styles/styles"
 
 const DocHeader: React.FC = () => {
     const theme = useTheme();
-    const appStyles = useMemo(() => GetAppStyles(theme), []);
+    const appStyles = useMemo(() => GetAppStyles(theme), [theme]);
     return (
         <View style={{
             backgroundColor: theme.colors.surfaceVariant,

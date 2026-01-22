@@ -1,21 +1,17 @@
-import {
-    useTheme, Text, Appbar,
-    Modal, Portal, IconButton,
-    List
-} from 'react-native-paper';
 import { ScrollView, View } from "react-native"
 import { Link, useNavigation, Redirect, Stack, router, useRouter } from "expo-router";
 import { ScppContext } from "../ScppContext"
-import { ScppThemeContext } from '../ScppThemeContext';
+import { ScppThemeContext, useTheme } from '../ScppThemeContext';
 import { useState, useContext } from 'react';
 import { GetAppStyles } from "../../styles/styles"
 import axios, { AxiosResponse } from 'axios'
 import { DeleteData } from "../../helpers/async-storage-helper"
+import { AppListItem } from '../../components/ui/AppListItem';
 
 export default () => {
-    const { paperTheme, navTheme, themeName, toggleTheme } = useContext(ScppThemeContext);
-    const theme = useTheme();
-    const appStyles = GetAppStyles(theme)
+    const { theme, navTheme, themeName, toggleTheme } = useContext(ScppThemeContext);
+    const appTheme = useTheme();
+    const appStyles = GetAppStyles(appTheme)
     const { sessionHash, apiPrefix } = useContext(ScppContext);
     const router = useRouter();
 
@@ -42,9 +38,9 @@ export default () => {
     return (
         <ScrollView style={appStyles.container}>
             <Stack.Screen options={{ headerTitle: "Mas opciones" }} />
-            <List.Item title="Lista Food Storage" onPress={() => router.push("/food/food-list")} />
-            <List.Item title={'Tema Activo: ' + themeName} onPress={() => toggleTheme()} />
-            <List.Item title="Salir" onPress={() => logout()} />
+            <AppListItem title="Lista Food Storage" onPress={() => router.push("/food/food-list")} />
+            <AppListItem title={'Tema Activo: ' + themeName} onPress={() => toggleTheme()} />
+            <AppListItem title="Salir" onPress={() => logout()} />
         </ScrollView>
     )
 }

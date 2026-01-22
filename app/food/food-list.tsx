@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react';
-import { FlatList, View } from 'react-native';
-import { useTheme, Text } from 'react-native-paper';
+import { FlatList, View, Text } from 'react-native';
+import { useTheme } from '../ScppThemeContext';
 import { Stack } from "expo-router";
 import { ScppContext } from "../ScppContext"
 import axios from 'axios';
@@ -12,7 +12,7 @@ const FoodList: React.FC = () => {
     const [foodItems, setFoodItems] = useState([]);
     const [apiCalling, setApiCalling] = useState<boolean>(true)
     const theme = useTheme();
-    const appStyles = useMemo(() => GetAppStyles(theme), []);
+    const appStyles = useMemo(() => GetAppStyles(theme), [theme]);
     
     const getData = async () => {
         let response: any = {}

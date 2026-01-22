@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
-import { View } from 'react-native';
-import { Text, useTheme } from 'react-native-paper';
+import { View, Text } from 'react-native';
+import { useTheme } from '../app/ScppThemeContext';
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import numeral from 'numeral';
 import { GetAppStyles } from "../styles/styles"
+import { Documento } from '../models/Documento';
 
 interface DocumentItemProps {
     item: Documento;
@@ -12,7 +13,7 @@ interface DocumentItemProps {
 
 const DocumentItem: React.FC<DocumentItemProps> = ({ item, rightSwipe }) => {
     const theme = useTheme();
-    const appStyles = useMemo(() => GetAppStyles(theme), []);
+    const appStyles = useMemo(() => GetAppStyles(theme), [theme]);
     
     return (
         <ReanimatedSwipeable

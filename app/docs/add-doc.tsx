@@ -1,20 +1,21 @@
-
 import {
-    StyleSheet, View, ScrollView, FlatList,
-    SafeAreaView
+    StyleSheet, View, ScrollView, FlatList, Text, TouchableOpacity
 } from 'react-native';
 import { Stack } from "expo-router";
-import { useEffect, useState, useRef, useContext, useCallback } from 'react';
+import { useState, useContext, useCallback } from 'react';
 import { GetAppStyles } from "../../styles/styles"
-import {
-    IconButton, useTheme, Button, TextInput,
-    Portal, Dialog, List, Snackbar
-} from 'react-native-paper';
+import { useTheme } from '../ScppThemeContext';
+import { AppIconButton } from '../../components/ui/AppIconButton';
+import { AppButton } from '../../components/ui/AppButton';
+import { AppTextInput } from '../../components/ui/AppTextInput';
+import { AppDialog } from '../../components/ui/AppDialog';
+import { AppSnackbar } from '../../components/ui/AppSnackbar';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { DateTime } from "luxon";
-import axios, { AxiosResponse } from 'axios'
+import axios from 'axios'
 import { ScppContext } from "../ScppContext"
 import MaskInput, { createNumberMask } from 'react-native-mask-input';
+import { TextInput as RNTextInput } from 'react-native';
 
 export default () => {
     const theme = useTheme();
@@ -129,45 +130,44 @@ export default () => {
     return (
         <View style={{ flex: 1 }}>
             <Stack.Screen options={{ headerTitle: "Agregar Documento" }} />
-            <Portal>
-                <Snackbar
-                    duration={2500}
-                    visible={showSnackBar}
-                    style={{ zIndex: 999 }}
-                    onDismiss={() => { setShowSnackBar(false) }}>
-                    {snackbarMsg}
-                </Snackbar>
-            </Portal>
-            <Portal>
-                <Dialog visible={showCategoriaList} onDismiss={() => { setShowCategoriaList(false) }} style={{ height: '80%' }}>
-                    <Dialog.Title>Categoria</Dialog.Title>
-                    <Dialog.ScrollArea>
-                        <FlatList
-                            data={categorias}
-                            renderItem={({ item }) =>
-                                <List.Item
-                                    title={item.descripcion}
-                                    key={item.id}
-                                    onPress={() => { onUpdateCategoria({ id: item.id, descripcion: item.descripcion }) }} />
-                            } />
-                    </Dialog.ScrollArea>
-                </Dialog>
-                <Dialog visible={showTipoDocList} onDismiss={() => { setShowTipoDocList(false) }}>
-                    <Dialog.Title>Tipo Documento</Dialog.Title>
-                    <Dialog.ScrollArea>
-                        <FlatList
-                            data={tipoDocumentos}
-                            renderItem={({ item }) =>
-                                <List.Item
-                                    title={item.descripcion}
-                                    key={item.id}
-                                    onPress={() => { onUpdateTipoDoc({ id: item.id, descripcion: item.descripcion }) }} />
-                            } />
-                    </Dialog.ScrollArea>
-                </Dialog>
-            </Portal>
+            <AppSnackbar
+                duration={2500}
+                visible={showSnackBar}
+                onDismiss={() => { setShowSnackBar(false) }}>
+                {snackbarMsg}
+            </AppSnackbar>
+            <AppDialog visible={showCategoriaList} onDismiss={() => { setShowCategoriaList(false) }}>
+                <AppDialog.Title>Categoria</AppDialog.Title>
+                <AppDialog.ScrollArea>
+                    <FlatList
+                        data={categorias}
+                        renderItem={({ item }) =>
+                            <TouchableOpacity
+                                style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: theme.colors.outlineVariant }}
+                                key={item.id}
+                                onPress={() => { onUpdateCategoria({ id: item.id, descripcion: item.descripcion }) }}>
+                                <Text style={appStyles.textFontSize}>{item.descripcion}</Text>
+                            </TouchableOpacity>
+                        } />
+                </AppDialog.ScrollArea>
+            </AppDialog>
+            <AppDialog visible={showTipoDocList} onDismiss={() => { setShowTipoDocList(false) }}>
+                <AppDialog.Title>Tipo Documento</AppDialog.Title>
+                <AppDialog.ScrollArea>
+                    <FlatList
+                        data={tipoDocumentos}
+                        renderItem={({ item }) =>
+                            <TouchableOpacity
+                                style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: theme.colors.outlineVariant }}
+                                key={item.id}
+                                onPress={() => { onUpdateTipoDoc({ id: item.id, descripcion: item.descripcion }) }}>
+                                <Text style={appStyles.textFontSize}>{item.descripcion}</Text>
+                            </TouchableOpacity>
+                        } />
+                </AppDialog.ScrollArea>
+            </AppDialog>
             <View style={appStyles.btnRow}>
-                <IconButton
+                <AppIconButton
                     style={appStyles.btnRowBtn}
                     icon="content-save"
                     mode="contained-tonal"
@@ -180,61 +180,78 @@ export default () => {
             </View>
             <View style={appStyles.container}>
                 <ScrollView>
-                    <TextInput mode="flat" label='Monto'
-                        inputMode='numeric'
-                        value={docMonto.toString()}
-                        dense={true}
-                        style={{ marginBottom: 5 }}
-                        right={<TextInput.Icon icon="minus-circle" onPress={() => { setNegativeMonto(!negativeMonto) }}
-                            color={() => negativeMonto ? "red" : theme.colors.onSurfaceVariant} />}
-                        render={props =>
+                    <View style={{
+                        marginVertical: 4,
+                        borderRadius: 4,
+                        borderWidth: 1,
+                        borderColor: theme.colors.outline,
+                        paddingHorizontal: 12,
+                        paddingTop: 24,
+                        paddingBottom: 8,
+                    }}>
+                        <Text style={{ position: 'absolute', top: 8, left: 12, fontSize: 12, color: theme.colors.onSurfaceVariant }}>
+                            Monto
+                        </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                             <MaskInput
-                                {...props}
+                                style={{ flex: 1, fontSize: 16, color: theme.colors.onSurface, paddingVertical: 0 }}
+                                value={docMonto.toString()}
+                                keyboardType="numeric"
                                 onChangeText={(masked, unmasked) => {
-                                    setDocMonto(parseInt(unmasked))
+                                    setDocMonto(parseInt(unmasked) || 0)
                                 }}
                                 mask={dollarMask}
+                                placeholderTextColor={theme.colors.onSurfaceVariant}
                             />
-                        } />
-                    <TextInput label='Proposito'
+                            <TouchableOpacity onPress={() => { setNegativeMonto(!negativeMonto) }} style={{ padding: 4 }}>
+                                <Text style={{ color: negativeMonto ? theme.colors.error : theme.colors.onSurfaceVariant, fontSize: 20 }}>
+                                    {negativeMonto ? '−' : ''}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                    <AppTextInput label='Proposito'
                         style={{ marginBottom: 5 }}
                         mode="flat"
                         dense={true}
                         value={docProposito}
                         autoCapitalize="none"
                         onChangeText={text => setDocProposito(text)} />
-                    <TextInput
+                    <AppTextInput
                         style={{ marginBottom: 5 }}
                         label="Fecha"
                         mode="flat"
                         dense={true}
                         editable={false}
                         value={DateTime.fromJSDate(docDate).toFormat('yyyy-MM-dd')}
-                        right={<TextInput.Icon icon="calendar" onPress={() => { setShowDocDatePicker(true) }} />}
+                        rightIcon="calendar"
+                        onRightIconPress={() => { setShowDocDatePicker(true) }}
                     />
                     {showDocDatePicker && (
                         <DateTimePicker testID="dateTimePicker" value={docDate} mode="date"
                             display="default" onChange={onChangeDocDatePicker}
                         />
                     )}
-                    <TextInput
+                    <AppTextInput
                         style={{ marginBottom: 5 }}
                         label="Tipo Doc"
                         mode="flat"
                         dense={true}
                         editable={false}
                         value={docTipoDocName}
-                        right={<TextInput.Icon icon="chevron-down" onPress={() => { setShowTipoDocList(true) }} />}
+                        rightIcon="chevron-down"
+                        onRightIconPress={() => { setShowTipoDocList(true) }}
                     />
                     {showCategoriaInput &&
-                        <TextInput
+                        <AppTextInput
                             style={{ marginBottom: 5 }}
                             label="Categoria"
                             mode="flat"
                             dense={true}
                             editable={false}
                             value={docCatName}
-                            right={<TextInput.Icon icon="chevron-down" onPress={() => { setShowCategoriaList(true) }} />}
+                            rightIcon="chevron-down"
+                            onRightIconPress={() => { setShowCategoriaList(true) }}
                         />
                     }
                 </ScrollView>

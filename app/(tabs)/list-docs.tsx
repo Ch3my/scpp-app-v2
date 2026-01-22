@@ -1,6 +1,6 @@
-import { View, Modal, FlatList, Pressable, TouchableOpacity } from "react-native"
+import { View, Modal, FlatList, Pressable, TouchableOpacity, Text } from "react-native"
 import { Link, Stack, router } from "expo-router";
-import { IconButton, useTheme, Text, TextInput, Portal, List, Button } from 'react-native-paper';
+import { useTheme } from '../ScppThemeContext';
 import { GetAppStyles } from "../../styles/styles"
 import { useEffect, useState, useContext, useCallback } from 'react';
 import axios, { AxiosResponse } from 'axios'
@@ -15,6 +15,8 @@ import ListDocsFilters from "../../components/ListDocsFilters";
 import DocRow from "../../components/DocRow";
 import DocHeader from "../../components/DocHeader";
 import { Documento } from "../../models/Documento";
+import { AppIconButton } from "../../components/ui/AppIconButton";
+import { AppTextInput } from "../../components/ui/AppTextInput";
 
 export default () => {
     numeral.locale("es-es")
@@ -173,33 +175,17 @@ export default () => {
     }
 
     const rightSwipe = useCallback((progress: any, dragX: any, id: number) => {
-        const editStyle = useAnimatedStyle(() => {
+        const containerStyle = useAnimatedStyle(() => {
             const translateX = interpolate(
                 progress.value,
                 [0, 1],
-                [50, 1],
+                [100, 0], // Move the whole 100px block
                 Extrapolation.CLAMP
             );
             return {
                 transform: [{ translateX }],
-                backgroundColor: theme.colors.secondary,
-                justifyContent: 'center',
-                alignItems: 'center',
-            };
-        });
-
-        const deleteStyle = useAnimatedStyle(() => {
-            const translateX = interpolate(
-                progress.value,
-                [0, 1],
-                [100, 1],
-                Extrapolation.CLAMP
-            );
-            return {
-                transform: [{ translateX }],
-                backgroundColor: theme.colors.error,
-                justifyContent: 'center',
-                alignItems: 'center',
+                flexDirection: 'row',
+                width: 100,
             };
         });
 
@@ -218,24 +204,24 @@ export default () => {
         }
 
         return (
-            <Reanimated.View style={{ flexDirection: 'row', width: 100 }}>
-                <Reanimated.View style={deleteStyle}>
-                    <IconButton
+            <Reanimated.View style={containerStyle}>
+                <View style={{ flex: 1, backgroundColor: theme.colors.error, justifyContent: 'center', alignItems: 'center' }}>
+                    <AppIconButton
                         style={appStyles.btnRowBtn}
                         icon="delete"
                         iconColor={theme.colors.onError}
                         onPress={() => { deleteDoc() }}
                     />
-                </Reanimated.View>
-                <Reanimated.View style={editStyle}>
-                    <IconButton
+                </View>
+                <View style={{ flex: 1, backgroundColor: theme.colors.secondary, justifyContent: 'center', alignItems: 'center' }}>
+                    <AppIconButton
                         icon="file-edit"
                         iconColor={theme.colors.onSecondary}
                         onPress={() => { editAction() }}
                     />
-                </Reanimated.View>
+                </View>
             </Reanimated.View>
-        )
+        );
     }, []);
 
     const renderItem = useCallback(
@@ -246,62 +232,61 @@ export default () => {
     return (
         <View style={{ flex: 1, backgroundColor: theme.colors.background }} onLayout={() => setLayoutReady(true)}>
             <Stack.Screen options={{ headerTitle: "Documentos" }} />
-            <Portal>
-                <ListDocsFilters visible={showFiltersModal}
-                    initialFechaInicio={fechaInicio}
-                    initialFechaTermino={fechaTermino}
-                    initialCategoriaFilterName={categoriaFilterName}
-                    initialSearchPhrase={searchPhrase}
-                    onDismiss={() => {
-                        setShowFiltersModal(false)
-                    }}
-                    onFilterUpdate={onFilterUpdate} />
-                <Modal
-                    visible={showTipoDocFilter}
-                    onRequestClose={() => setShowTipoDocFilter(false)}
-                    transparent={true}
-                    animationType="fade"
-                >
-                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                        <View
-                            style={{
-                                backgroundColor: theme.colors.background,
-                                padding: 20,
-                                borderRadius: 10,
-                                width: '80%',
-                                justifyContent: 'center',
-                                borderColor: theme.colors.secondary,
-                                borderWidth: 1,
-                            }}>
-                            <FlatList
-                                data={tipoDocumentos}
-                                renderItem={({ item }) => (
-                                    <TouchableOpacity
-                                        style={{ padding: 10, height: 50 }}
-                                        key={item.id}
-                                        onPress={() => onUpdateTipoDoc({ id: item.id, descripcion: item.descripcion })}
-                                    >
-                                        <Text style={appStyles.textFontSize}>{item.descripcion}</Text>
-                                    </TouchableOpacity>
-                                )}
-                            />
-                        </View>
+            <ListDocsFilters visible={showFiltersModal}
+                initialFechaInicio={fechaInicio}
+                initialFechaTermino={fechaTermino}
+                initialCategoriaFilterName={categoriaFilterName}
+                initialSearchPhrase={searchPhrase}
+                onDismiss={() => {
+                    setShowFiltersModal(false)
+                }}
+                onFilterUpdate={onFilterUpdate} />
+            <Modal
+                visible={showTipoDocFilter}
+                onRequestClose={() => setShowTipoDocFilter(false)}
+                transparent={true}
+                animationType="fade"
+            >
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                    <View
+                        style={{
+                            backgroundColor: theme.colors.background,
+                            padding: 20,
+                            borderRadius: 10,
+                            width: '80%',
+                            justifyContent: 'center',
+                            borderColor: theme.colors.secondary,
+                            borderWidth: 1,
+                        }}>
+                        <FlatList
+                            data={tipoDocumentos}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity
+                                    style={{ padding: 10, height: 50 }}
+                                    key={item.id}
+                                    onPress={() => onUpdateTipoDoc({ id: item.id, descripcion: item.descripcion })}
+                                >
+                                    <Text style={appStyles.textFontSize}>{item.descripcion}</Text>
+                                </TouchableOpacity>
+                            )}
+                        />
                     </View>
-                </Modal>
-            </Portal>
+                </View>
+            </Modal>
             <View style={{ justifyContent: "space-between", alignItems: "center", flexDirection: "row", backgroundColor: theme.colors.background }}>
                 <View style={appStyles.btnRow}>
                     <Link href="/docs/add-doc" asChild>
-                        <IconButton
+                        <AppIconButton
                             style={appStyles.btnRowBtn}
                             size={30}
                             icon="plus"
                             mode="contained-tonal"
                             containerColor={theme.colors.primary}
                             iconColor={theme.colors.onPrimary}
+                            onPress={() => { }}
                         />
                     </Link>
-                    <IconButton
+                    <AppIconButton
                         style={appStyles.btnRowBtn}
                         size={30}
                         icon="filter"
@@ -311,15 +296,16 @@ export default () => {
                         onPress={() => { setShowFiltersModal(true) }}
                     />
                 </View>
-                <Text style={{ fontSize: 18 }}>$ {numeral(sumaTotalDocs).format('0,0')}</Text>
+                <Text style={{ fontSize: 18, color: theme.colors.onBackground }}>$ {numeral(sumaTotalDocs).format('0,0')}</Text>
                 <View style={appStyles.btnRow}>
-                    <TextInput label='Tipo Doc'
-                        style={{ width: 120 }}
+                    <AppTextInput label='Tipo Doc'
+                        style={{ width: 140 }}
                         mode="outlined"
                         editable={false}
                         dense={true}
                         value={tipoDocFilterName}
-                        right={<TextInput.Icon icon="chevron-down" onPress={() => { setShowTipoDocFilter(true) }} />}
+                        rightIcon="chevron-down"
+                        onRightIconPress={() => { setShowTipoDocFilter(true) }}
                     />
                 </View>
             </View>
@@ -332,7 +318,7 @@ export default () => {
                 keyExtractor={(item) => item.id.toString()}
                 itemLayoutAnimation={LinearTransition}
                 renderItem={renderItem}
-                ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 20 }}>No hay Datos</Text>}
+                ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 20, color: theme.colors.onBackground }}>No hay Datos</Text>}
                 initialNumToRender={15}
             />
         </View>

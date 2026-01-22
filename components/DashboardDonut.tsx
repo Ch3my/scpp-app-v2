@@ -3,8 +3,8 @@ import DonutChart from './ChartSVG/DonutChart';
 import { ScppContext } from '../app/ScppContext';
 import axios, { AxiosResponse } from 'axios'
 import { useNavigation, useFocusEffect } from "expo-router";
-import { InteractionManager, View, StyleSheet, FlatList } from "react-native"
-import { Text, useTheme } from "react-native-paper"
+import { InteractionManager, View, StyleSheet, FlatList, Text } from "react-native"
+import { useTheme } from "../app/ScppThemeContext"
 import numeral from "numeral"
 import "numeral/locales/es-es";
 import { GetAppStyles } from "../styles/styles"
@@ -52,7 +52,7 @@ const DashboardDonut: React.FC<DashboardDonutProps> = ({ shouldRefresh }) => {
 
     return (
         <View>
-            <Text variant="titleLarge" style={{marginBottom:10}}>Uso del Presupuesto Mes</Text>
+            <Text style={[appStyles.titleLarge, {marginBottom:10}]}>Uso del Presupuesto Mes</Text>
             <View style={styles.container}>
                 <View style={{ flex: 0.4 }}>
                     <DonutChart percentage={percentage} label='Gastado' size={120}></DonutChart>

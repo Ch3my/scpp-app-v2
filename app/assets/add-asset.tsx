@@ -1,16 +1,18 @@
 import {
     View, ScrollView, Image, FlatList,
-    Modal, Text,
+    Modal, Text, TouchableOpacity,
     SafeAreaView
 } from 'react-native';
 import { Stack } from "expo-router";
 import { useEffect, useState, useRef, useContext, useCallback } from 'react';
 import { Camera, CameraType, CameraView } from 'expo-camera';
 import { GetAppStyles } from "../../styles/styles"
-import {
-    IconButton, MD3Colors, useTheme, Button, TextInput,
-    Portal, Dialog, List, Snackbar,
-} from 'react-native-paper';
+import { useTheme } from '../ScppThemeContext';
+import { AppIconButton } from '../../components/ui/AppIconButton';
+import { AppButton } from '../../components/ui/AppButton';
+import { AppTextInput } from '../../components/ui/AppTextInput';
+import { AppDialog } from '../../components/ui/AppDialog';
+import { AppSnackbar } from '../../components/ui/AppSnackbar';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { DateTime } from "luxon";
 import axios, { AxiosResponse } from 'axios'
@@ -20,7 +22,6 @@ import { CompressAndResizeImage } from "../../helpers/img-compressor"
 import React from 'react';
 
 export default () => {
-    // TODO manejar permiso denegado, mostrar mensaje, etc
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
     const { sessionHash, apiPrefix, categorias } = useContext(ScppContext);
@@ -41,7 +42,6 @@ export default () => {
     let [assetDate, setAssetDate] = useState<Date>(new Date())
     let [assetCatId, setAssetCatId] = useState<number | null>(1)
     let [assetCatName, setAssetCatName] = useState<string>("")
-    // const [listOfCategoria, setListOfCategoria] = useState<Categoria[]>([])
 
     useEffect(() => {
         const async = async () => {
@@ -147,42 +147,38 @@ export default () => {
                             ref={cameraRef} animateShutter={false}
                             onCameraReady={cameraReady} />
                         <View style={{ flexDirection: "row", justifyContent: "space-around", marginBottom: 20 }}>
-                            <Button icon="camera" mode="contained-tonal" onPress={toggleCameraType}>
+                            <AppButton icon="camera" mode="contained-tonal" onPress={toggleCameraType}>
                                 Flip Camara
-                            </Button>
-                            <Button icon="camera" mode="contained" onPress={takePicture} loading={cameraWorking}>
+                            </AppButton>
+                            <AppButton icon="camera" mode="contained" onPress={takePicture} loading={cameraWorking}>
                                 Tomar Foto
-                            </Button>
+                            </AppButton>
                         </View>
                     </>
                 }
             </Modal>
-            <Portal>
-                <Snackbar
-                    duration={2500}
-                    visible={showSnackBar}
-                    style={{ zIndex: 999 }}
-                    onDismiss={() => { setShowSnackBar(false) }}>
-                    {snackbarMsg}
-                </Snackbar>
-            </Portal>
-            <Portal>
-                <Dialog visible={showCategoriaList} onDismiss={() => { setShowCategoriaList(false) }} style={{ height: '80%' }}>
-                    <Dialog.Title>Categoria</Dialog.Title>
-                    <Dialog.ScrollArea>
-                        <FlatList
-                            data={categorias}
-                            renderItem={({ item }) =>
-                                <List.Item
-                                    title={item.descripcion}
-                                    key={item.id}
-                                    onPress={() => { onUpdateCategoria({ id: item.id, descripcion: item.descripcion }) }} />
-                            } />
-                    </Dialog.ScrollArea>
-                </Dialog>
-            </Portal>
+            <AppSnackbar
+                duration={2500}
+                visible={showSnackBar}
+                onDismiss={() => { setShowSnackBar(false) }}>
+                {snackbarMsg}
+            </AppSnackbar>
+            <AppDialog visible={showCategoriaList} onDismiss={() => { setShowCategoriaList(false) }}>
+                <AppDialog.Title>Categoria</AppDialog.Title>
+                <AppDialog.ListArea
+                    data={categorias}
+                    renderItem={({ item }) =>
+                        <TouchableOpacity
+                            style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: theme.colors.outlineVariant }}
+                            key={item.id}
+                            onPress={() => { onUpdateCategoria({ id: item.id, descripcion: item.descripcion }) }}>
+                            <Text style={appStyles.textFontSize}>{item.descripcion}</Text>
+                        </TouchableOpacity>
+                    }
+                />
+            </AppDialog>
             <View style={[appStyles.btnRow]}>
-                <IconButton
+                <AppIconButton
                     style={appStyles.btnRowBtn}
                     icon="content-save"
                     size={30}
@@ -193,40 +189,42 @@ export default () => {
                 />
             </View>
             <ScrollView style={appStyles.container}>
-                <TextInput label='Descripción'
+                <AppTextInput label='Descripción'
                     style={{ marginBottom: 5 }}
                     mode="flat"
                     dense={true}
                     value={assetDescription}
                     autoCapitalize="none"
                     onChangeText={text => setAssetDescription(text)} />
-                <TextInput
+                <AppTextInput
                     style={{ marginBottom: 5 }}
                     label="Fecha"
                     mode="flat"
                     dense={true}
                     editable={false}
                     value={DateTime.fromJSDate(assetDate).toFormat('yyyy-MM-dd')}
-                    right={<TextInput.Icon icon="calendar" onPress={() => { setShowDatePicker(true) }} />}
+                    rightIcon="calendar"
+                    onRightIconPress={() => { setShowDatePicker(true) }}
                 />
                 {showDatePicker && (
                     <DateTimePicker testID="dateTimePicker" value={assetDate} mode="date"
                         display="default" onChange={onChangeDatePicker}
                     />
                 )}
-                <TextInput
+                <AppTextInput
                     style={{ marginBottom: 5 }}
                     label="Categoria"
                     mode="flat"
                     dense={true}
                     editable={false}
                     value={assetCatName}
-                    right={<TextInput.Icon icon="chevron-down" onPress={() => { setShowCategoriaList(true) }} />}
+                    rightIcon="chevron-down"
+                    onRightIconPress={() => { setShowCategoriaList(true) }}
                 />
                 {!showCamera &&
-                    <Button icon="camera" mode="contained" onPress={prepareCamera}>
+                    <AppButton icon="camera" mode="contained" onPress={prepareCamera}>
                         Agregar Foto
-                    </Button>
+                    </AppButton>
                 }
 
                 {!showCamera && photoLocation &&
@@ -238,12 +236,12 @@ export default () => {
                                 resizeMode="contain" />
                         </View>
                         <View style={{ flexDirection: 'row', justifyContent: "space-around", width: "100%" }}>
-                            <Button icon="rotate-left" mode="contained-tonal" onPress={rotateLeft}>
+                            <AppButton icon="rotate-left" mode="contained-tonal" onPress={rotateLeft}>
                                 Girar Izquierda
-                            </Button>
-                            <Button icon="rotate-right" mode="contained-tonal" onPress={rotateRight}>
+                            </AppButton>
+                            <AppButton icon="rotate-right" mode="contained-tonal" onPress={rotateRight}>
                                 Girar Derecha
-                            </Button>
+                            </AppButton>
                         </View>
                     </View>
                 }

@@ -1,6 +1,6 @@
 import React, { useState, useContext, useCallback, useRef } from 'react';
-import { useTheme, Text } from 'react-native-paper';
-import { ScrollView, Dimensions, InteractionManager, RefreshControl, View } from 'react-native';
+import { useTheme } from '../ScppThemeContext';
+import { ScrollView, Dimensions, InteractionManager, RefreshControl, View, Text } from 'react-native';
 import { useFocusEffect, useNavigation } from "expo-router";
 import axios, { CancelTokenSource } from 'axios';
 import { ScppContext } from "../ScppContext";
@@ -91,7 +91,7 @@ const Dashboard = () => {
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
         >
-            <Text variant="titleLarge">Histórico Financiero Mensual</Text>
+            <Text style={appStyles.titleLarge}>Histórico Financiero Mensual</Text>
             <LineChart
                 datasets={[
                     { data: monthlyGraphData.gastosDataset, color: 'rgba(255, 99, 132, 1)' },
@@ -108,8 +108,8 @@ const Dashboard = () => {
                 <DashboardDonut shouldRefresh={refreshing} />
             </View>
             <View style={{ marginBottom: 30 }}>
-                <Text variant="titleLarge">Resumen Categoría</Text>
-                <Text style={{ marginBottom: 10 }}>
+                <Text style={appStyles.titleLarge}>Resumen Categoría</Text>
+                <Text style={{ marginBottom: 10, color: theme.colors.onBackground }}>
                     {barChartData.range.start !== "" && barChartData.range.end !== "" && (
                         <Text style={appStyles.textFontSize}>
                             {DateTime.fromISO(barChartData.range.start).toLocaleString({ month: 'long', year: 'numeric' })} -

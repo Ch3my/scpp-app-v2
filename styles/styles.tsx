@@ -21,6 +21,28 @@ export const GetAppStyles = (theme: any) => StyleSheet.create({
         justifyContent: 'center'
     },
     textFontSize: {
-        fontSize: 16
-    }
+        fontSize: 16,
+        color: theme.colors.onBackground,
+    },
+    // Text variants (replaces react-native-paper Text variants)
+    titleLarge: {
+        fontSize: 22,
+        fontWeight: '400',
+        color: theme.colors.onBackground,
+    },
+    titleMedium: {
+        fontSize: 16,
+        fontWeight: '500',
+        color: theme.colors.onBackground,
+    },
+    bodyMedium: {
+        fontSize: 14,
+        fontWeight: '400',
+        color: theme.colors.onBackground,
+    },
+    headlineSmall: {
+        fontSize: 24,
+        fontWeight: '400',
+        color: theme.colors.onBackground,
+    },
 });

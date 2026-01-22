@@ -1,6 +1,8 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { GetData, StoreData } from "../helpers/async-storage-helper"
 import axios, { AxiosResponse } from 'axios'
+import { Categoria } from '../models/Categoria';
+import { TipoDoc } from '../models/TipoDoc';
 
 type ScppContextType = {
     sessionHash: string;

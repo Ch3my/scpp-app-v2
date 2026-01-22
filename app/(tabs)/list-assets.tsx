@@ -1,6 +1,6 @@
-import { ScrollView, View, InteractionManager } from "react-native"
+import { ScrollView, View, InteractionManager, Text } from "react-native"
 import { Link, useNavigation, Stack, router, useFocusEffect } from "expo-router";
-import { IconButton, useTheme, DataTable, Text, Portal, Dialog, Button } from 'react-native-paper';
+import { useTheme } from '../ScppThemeContext';
 import { GetAppStyles } from "../../styles/styles"
 import { useEffect, useState, useCallback, useContext } from 'react';
 import axios, { AxiosResponse } from 'axios'
@@ -9,6 +9,9 @@ import { ScppContext } from "../ScppContext"
 import Reanimated, { Extrapolation, interpolate, useAnimatedStyle } from "react-native-reanimated";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import { Asset } from "../../models/Asset";
+import { AppIconButton } from "../../components/ui/AppIconButton";
+import { AppDialog } from "../../components/ui/AppDialog";
+import { AppButton } from "../../components/ui/AppButton";
 
 export default () => {
     const theme = useTheme();
@@ -53,47 +56,30 @@ export default () => {
             })
             return () => task.cancel();
         }, [])
-        // Para que no es necesario especificar nada en []
     );
 
     const rightSwipe = (progress: any, dragX: any, id: number) => {
-        // outputRange: [100, 1] contiene el largo del item
-        const editStyle = useAnimatedStyle(() => {
+        const containerStyle = useAnimatedStyle(() => {
             const translateX = interpolate(
                 progress.value,
                 [0, 1],
-                [50, 1],
+                [100, 0], // Move the whole 100px block
                 Extrapolation.CLAMP
             );
             return {
                 transform: [{ translateX }],
-                backgroundColor: theme.colors.secondary,
-                justifyContent: 'center',
-                alignItems: 'center',
-            };
-        });
-    
-        const deleteStyle = useAnimatedStyle(() => {
-            const translateX = interpolate(
-                progress.value,
-                [0, 1],
-                [100, 1],
-                Extrapolation.CLAMP
-            );
-            return {
-                transform: [{ translateX }],
-                backgroundColor: theme.colors.error,
-                justifyContent: 'center',
-                alignItems: 'center',
+                flexDirection: 'row',
+                width: 100,
             };
         });
         const editAction = () => {
             router.push("/assets/edit/" + id)
         }
+
         return (
-            <Reanimated.View style={{ flexDirection: 'row', width: 100 }}>
-                <Reanimated.View style={deleteStyle}>
-                    <IconButton
+            <Reanimated.View style={containerStyle}>
+                <View style={{ flex: 1, backgroundColor: theme.colors.error, justifyContent: 'center', alignItems: 'center' }}>
+                    <AppIconButton
                         style={appStyles.btnRowBtn}
                         icon="delete"
                         iconColor={theme.colors.onError}
@@ -102,51 +88,50 @@ export default () => {
                             setSelectedId(id)
                         }}
                     />
-                </Reanimated.View>
-                <Reanimated.View style={editStyle}>
-                    <IconButton
+                </View>
+                <View style={{ flex: 1, backgroundColor: theme.colors.secondary, justifyContent: 'center', alignItems: 'center' }}>
+                    <AppIconButton
                         icon="eye"
                         iconColor={theme.colors.onSecondary}
                         onPress={() => { editAction() }}
                     />
-                </Reanimated.View>
+                </View>
             </Reanimated.View>
-        )
+        );
     }
 
     return (
         <View style={{ flex: 1 }}>
             <Stack.Screen options={{ headerTitle: "Assets" }} />
-            <Portal>
-                <Dialog visible={showConfirmDelete} onDismiss={() => { setShowConfirmDelete(false) }}>
-                    <Dialog.Title>Confirme por Favor</Dialog.Title>
-                    <Dialog.Content>
-                        <Text variant="bodyMedium">¿Seguro que quiere eliminar el registro?</Text>
-                    </Dialog.Content>
-                    <Dialog.Actions>
-                        <Button onPress={() => {
-                            setShowConfirmDelete(false)
-                            deleteAsset()
-                        }}>SI</Button>
-                        <Button onPress={() => {
-                            setShowConfirmDelete(false)
-                            setSelectedId(0)
-                        }}>NO</Button>
-                    </Dialog.Actions>
-                </Dialog>
-            </Portal>
+            <AppDialog visible={showConfirmDelete} onDismiss={() => { setShowConfirmDelete(false) }}>
+                <AppDialog.Title>Confirme por Favor</AppDialog.Title>
+                <AppDialog.Content>
+                    <Text style={appStyles.bodyMedium}>¿Seguro que quiere eliminar el registro?</Text>
+                </AppDialog.Content>
+                <AppDialog.Actions>
+                    <AppButton mode="text" onPress={() => {
+                        setShowConfirmDelete(false)
+                        deleteAsset()
+                    }}>SI</AppButton>
+                    <AppButton mode="text" onPress={() => {
+                        setShowConfirmDelete(false)
+                        setSelectedId(0)
+                    }}>NO</AppButton>
+                </AppDialog.Actions>
+            </AppDialog>
             <View style={appStyles.btnRow}>
                 <Link href="/assets/add-asset" asChild>
-                    <IconButton
+                    <AppIconButton
                         style={appStyles.btnRowBtn}
                         icon="plus"
                         size={30}
                         mode="contained-tonal"
                         containerColor={theme.colors.primary}
                         iconColor={theme.colors.onPrimary}
+                        onPress={() => { }}
                     />
                 </Link>
-                <IconButton
+                <AppIconButton
                     style={appStyles.btnRowBtn}
                     icon="refresh"
                     size={30}
@@ -157,38 +142,47 @@ export default () => {
                 />
             </View>
             <ScrollView style={appStyles.container}>
+                {/* DataTable Header */}
+                <View style={{
+                    flexDirection: 'row',
+                    backgroundColor: theme.colors.surfaceVariant,
+                    padding: 12,
+                    borderBottomWidth: 1,
+                    borderBottomColor: theme.colors.outlineVariant,
+                }}>
+                    <Text style={[appStyles.textFontSize, { flex: 0.5, fontWeight: '500' }]}>Fecha</Text>
+                    <Text style={[appStyles.textFontSize, { flex: 1, fontWeight: '500' }]}>Descripcion</Text>
+                </View>
 
-                <DataTable>
-                    <DataTable.Header>
-                        <DataTable.Title style={{ flex: 0.5 }}>Fecha</DataTable.Title>
-                        <DataTable.Title >Descripcion</DataTable.Title>
-                    </DataTable.Header>
-                    {getAssetsApiCalling &&
-                        <DataTable.Row>
-                            <DataTable.Cell style={{ justifyContent: "center" }}>Cargando...</DataTable.Cell>
-                        </DataTable.Row>
-                    }
-                    {!getAssetsApiCalling && assetList.map((item) => (
-                        <ReanimatedSwipeable
-                            renderRightActions={(progress, dragX) => rightSwipe(progress, dragX, item.id)}
-                            key={item.id}
-                            friction={1}>
-                            <DataTable.Row>
-                                <DataTable.Cell style={{ flex: 0.5 }}>
-                                    <Text style={appStyles.textFontSize}>{item.fecha}</Text>
-                                </DataTable.Cell>
-                                <DataTable.Cell>
-                                    <Text style={appStyles.textFontSize}>{item.descripcion}</Text>
-                                </DataTable.Cell>
-                            </DataTable.Row>
-                        </ReanimatedSwipeable>
-                    ))}
-                    {(assetList.length == 0 && !getAssetsApiCalling) &&
-                        <DataTable.Row>
-                            <DataTable.Cell style={{ justifyContent: "center" }}>No hay Datos</DataTable.Cell>
-                        </DataTable.Row>
-                    }
-                </DataTable>
+                {getAssetsApiCalling && (
+                    <View style={{ padding: 16, alignItems: 'center' }}>
+                        <Text style={appStyles.textFontSize}>Cargando...</Text>
+                    </View>
+                )}
+
+                {!getAssetsApiCalling && assetList.map((item) => (
+                    <ReanimatedSwipeable
+                        renderRightActions={(progress, dragX) => rightSwipe(progress, dragX, item.id)}
+                        key={item.id}
+                        friction={1}>
+                        <View style={{
+                            flexDirection: 'row',
+                            backgroundColor: theme.colors.background,
+                            padding: 12,
+                            borderBottomWidth: 1,
+                            borderBottomColor: theme.colors.outlineVariant,
+                        }}>
+                            <Text style={[appStyles.textFontSize, { flex: 0.5 }]}>{item.fecha}</Text>
+                            <Text style={[appStyles.textFontSize, { flex: 1 }]}>{item.descripcion}</Text>
+                        </View>
+                    </ReanimatedSwipeable>
+                ))}
+
+                {(assetList.length == 0 && !getAssetsApiCalling) && (
+                    <View style={{ padding: 16, alignItems: 'center' }}>
+                        <Text style={appStyles.textFontSize}>No hay Datos</Text>
+                    </View>
+                )}
             </ScrollView>
         </View>
     )

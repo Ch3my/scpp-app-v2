@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { useTheme } from "react-native-paper";
+import { useTheme } from "../ScppThemeContext";
 import { FontAwesome } from "@expo/vector-icons";
 import { useMemo } from "react";
 
