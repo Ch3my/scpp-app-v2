@@ -14,7 +14,7 @@ interface DocumentItemProps {
 const DocumentItem: React.FC<DocumentItemProps> = ({ item, rightSwipe }) => {
     const theme = useTheme();
     const appStyles = useMemo(() => GetAppStyles(theme), [theme]);
-    
+
     return (
         <ReanimatedSwipeable
             renderRightActions={(progress, dragX) => rightSwipe(progress, dragX, item.id)}
@@ -35,9 +35,9 @@ const DocumentItem: React.FC<DocumentItemProps> = ({ item, rightSwipe }) => {
                     <Text style={appStyles.textFontSize}>{item.fecha}</Text>
                 </View>
                 <View style={{ flex: 1 }}>
-                    <Text style={appStyles.textFontSize}>{item.proposito}</Text>
+                    <Text style={[appStyles.textFontSize, {textAlignVertical: 'center'}]}>{item.proposito}</Text>
                 </View>
-                <View style={{ flex: 0.6, alignSelf: 'flex-end' }}>
+                <View style={{ flex: 0.6 }}>
                     <Text style={[appStyles.textFontSize, { textAlign: 'right' }]}>
                         {numeral(item.monto).format('0,0')}
                     </Text>

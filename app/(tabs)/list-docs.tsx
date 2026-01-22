@@ -231,48 +231,7 @@ export default () => {
     return (
         <View style={{ flex: 1, backgroundColor: theme.colors.background }} onLayout={() => setLayoutReady(true)}>
             <Stack.Screen options={{ headerTitle: "Documentos" }} />
-            <ListDocsFilters visible={showFiltersModal}
-                initialFechaInicio={fechaInicio}
-                initialFechaTermino={fechaTermino}
-                initialCategoriaFilterName={categoriaFilterName}
-                initialSearchPhrase={searchPhrase}
-                onDismiss={() => {
-                    setShowFiltersModal(false)
-                }}
-                onFilterUpdate={onFilterUpdate} />
-            <Modal
-                visible={showTipoDocFilter}
-                onRequestClose={() => setShowTipoDocFilter(false)}
-                transparent={true}
-                animationType="fade"
-            >
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                    <View
-                        style={{
-                            backgroundColor: theme.colors.background,
-                            padding: 20,
-                            borderRadius: 10,
-                            width: '80%',
-                            justifyContent: 'center',
-                            borderColor: theme.colors.secondary,
-                            borderWidth: 1,
-                        }}>
-                        <FlatList
-                            data={tipoDocumentos}
-                            renderItem={({ item }) => (
-                                <TouchableOpacity
-                                    style={{ padding: 10, height: 50 }}
-                                    key={item.id}
-                                    onPress={() => onUpdateTipoDoc({ id: item.id, descripcion: item.descripcion })}
-                                >
-                                    <Text style={appStyles.textFontSize}>{item.descripcion}</Text>
-                                </TouchableOpacity>
-                            )}
-                        />
-                    </View>
-                </View>
-            </Modal>
-            <View style={{ justifyContent: "space-between", alignItems: "center", flexDirection: "row", backgroundColor: theme.colors.background, paddingHorizontal:7 }}>
+            <View style={{ justifyContent: "space-between", alignItems: "center", flexDirection: "row", backgroundColor: theme.colors.background, paddingHorizontal: 7 }}>
                 <View style={appStyles.btnRow}>
                     <Link href="/docs/add-doc" asChild>
                         <AppIconButton
@@ -318,6 +277,47 @@ export default () => {
                 ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 20, color: theme.colors.onBackground }}>No hay Datos</Text>}
                 initialNumToRender={15}
             />
+            <Modal
+                visible={showTipoDocFilter}
+                onRequestClose={() => setShowTipoDocFilter(false)}
+                transparent={true}
+                animationType="fade"
+            >
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                    <View
+                        style={{
+                            backgroundColor: theme.colors.background,
+                            padding: 20,
+                            borderRadius: 10,
+                            width: '80%',
+                            justifyContent: 'center',
+                            borderColor: theme.colors.secondary,
+                            borderWidth: 1,
+                        }}>
+                        <FlatList
+                            data={tipoDocumentos}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity
+                                    style={{ padding: 10, height: 50 }}
+                                    key={item.id}
+                                    onPress={() => onUpdateTipoDoc({ id: item.id, descripcion: item.descripcion })}
+                                >
+                                    <Text style={appStyles.textFontSize}>{item.descripcion}</Text>
+                                </TouchableOpacity>
+                            )}
+                        />
+                    </View>
+                </View>
+            </Modal>
+            <ListDocsFilters visible={showFiltersModal}
+                initialFechaInicio={fechaInicio}
+                initialFechaTermino={fechaTermino}
+                initialCategoriaFilterName={categoriaFilterName}
+                initialSearchPhrase={searchPhrase}
+                onDismiss={() => {
+                    setShowFiltersModal(false)
+                }}
+                onFilterUpdate={onFilterUpdate} />
         </View>
     )
 }

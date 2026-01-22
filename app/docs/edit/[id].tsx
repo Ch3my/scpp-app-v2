@@ -217,7 +217,6 @@ export default () => {
                 <AppTextInput label='Proposito'
                     style={{ marginBottom: 5 }}
                     mode="flat"
-                    dense={true}
                     value={docProposito}
                     autoCapitalize="none"
                     onChangeText={text => setDocProposito(text)} />
