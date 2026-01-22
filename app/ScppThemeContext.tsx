@@ -1,5 +1,6 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useColorScheme } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   DarkTheme,
   DefaultTheme,
@@ -87,6 +88,8 @@ export const ScppThemeContext = createContext<ScppThemeContextType>({
   toggleTheme: () => {},
 });
 
+const THEME_STORAGE_KEY = '@scpp_theme';
+
 export const ScppThemeProvider: React.FC<ScppThemeProviderProps> = ({
   children,
 }) => {
@@ -101,11 +104,35 @@ export const ScppThemeProvider: React.FC<ScppThemeProviderProps> = ({
     themeName === 'dark' ? DarkTheme : DefaultTheme
   );
 
-  const toggleTheme = () => {
+  // Load saved theme on mount
+  useEffect(() => {
+    const loadTheme = async () => {
+      try {
+        const savedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
+        if (savedTheme === 'dark' || savedTheme === 'light') {
+          setThemeName(savedTheme);
+          setTheme(savedTheme === 'dark' ? AppDarkTheme : AppLightTheme);
+          setNavTheme(savedTheme === 'dark' ? DarkTheme : DefaultTheme);
+        }
+      } catch (error) {
+        console.log('Error loading theme:', error);
+      }
+    };
+    loadTheme();
+  }, []);
+
+  const toggleTheme = async () => {
     const newThemeName = themeName === 'dark' ? 'light' : 'dark';
     setThemeName(newThemeName);
     setTheme(newThemeName === 'dark' ? AppDarkTheme : AppLightTheme);
     setNavTheme(newThemeName === 'dark' ? DarkTheme : DefaultTheme);
+
+    // Save theme preference
+    try {
+      await AsyncStorage.setItem(THEME_STORAGE_KEY, newThemeName);
+    } catch (error) {
+      console.log('Error saving theme:', error);
+    }
   };
 
   return (

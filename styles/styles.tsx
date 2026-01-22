@@ -9,8 +9,11 @@ export const GetAppStyles = (theme: any) => StyleSheet.create({
     btnRow: {
         flexDirection: "row",
         backgroundColor: theme.colors.background,
-        gap: 7,
-        // backgroundColor: "red"
+        gap: 10,
+    },
+    onlyBtnRow: {
+        paddingHorizontal: 10,
+        paddingVertical: 5,
     },
     centerContentContainer: {
         alignItems: 'center',

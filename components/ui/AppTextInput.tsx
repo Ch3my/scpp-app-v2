@@ -79,8 +79,8 @@ export const AppTextInput: React.FC<AppTextInputProps> = ({
     borderColor: getBorderColor(),
     backgroundColor: mode === 'flat' ? colors.surfaceVariant : 'transparent',
     paddingHorizontal: 12,
-    paddingTop: label ? (dense ? 18 : 24) : (dense ? 6 : 12),
-    paddingBottom: dense ? 2 : 12,
+    paddingTop: label ? (dense ? 20 : 26) : (dense ? 6 : 10),
+    paddingBottom: dense ? 2 : 8,
     opacity: disabled ? 0.5 : 1,
   };
 
@@ -141,6 +141,7 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    minHeight: 26,
   },
   input: {
     flex: 1,

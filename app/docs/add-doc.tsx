@@ -1,6 +1,7 @@
 import {
     StyleSheet, View, ScrollView, FlatList, Text, TouchableOpacity
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Stack } from "expo-router";
 import { useState, useContext, useCallback } from 'react';
 import { GetAppStyles } from "../../styles/styles"
@@ -163,10 +164,9 @@ export default () => {
                         } />
                 </AppDialog.ScrollArea>
             </AppDialog>
-            <View style={appStyles.container}>
-            <View style={appStyles.btnRow}>
+            <View style={[appStyles.btnRow, appStyles.onlyBtnRow]}>
                 <AppIconButton
-                    icon="content-save"     
+                    icon="content-save"
                     mode="contained-tonal"
                     containerColor={theme.colors.primary}
                     iconColor={theme.colors.onPrimary}
@@ -175,81 +175,86 @@ export default () => {
                     disabled={apiCalling}
                 />
             </View>
+            <View style={appStyles.container}>
                 <ScrollView>
-                    <View style={{
-                        marginVertical: 4,
-                        borderRadius: 4,
-                        borderWidth: 1,
-                        borderColor: theme.colors.outline,
-                        paddingHorizontal: 12,
-                        paddingTop: 24,
-                        paddingBottom: 8,
-                    }}>
-                        <Text style={{ position: 'absolute', top: 8, left: 12, fontSize: 12, color: theme.colors.onSurfaceVariant }}>
-                            Monto
-                        </Text>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <MaskInput
-                                style={{ flex: 1, fontSize: 16, color: theme.colors.onSurface, paddingVertical: 0 }}
-                                value={docMonto.toString()}
-                                keyboardType="numeric"
-                                onChangeText={(masked, unmasked) => {
-                                    setDocMonto(parseInt(unmasked) || 0)
-                                }}
-                                mask={dollarMask}
-                                placeholderTextColor={theme.colors.onSurfaceVariant}
-                            />
-                            <TouchableOpacity onPress={() => { setNegativeMonto(!negativeMonto) }} style={{ padding: 4 }}>
-                                <Text style={{ color: negativeMonto ? theme.colors.error : theme.colors.onSurfaceVariant, fontSize: 20 }}>
-                                    {negativeMonto ? '−' : ''}
-                                </Text>
-                            </TouchableOpacity>
+                    <View style={{ flexDirection: 'column', gap: 5 }}>
+                        <View style={{
+                            borderRadius: 4,
+                            borderWidth: 1,
+                            borderColor: theme.colors.outline,
+                            paddingHorizontal: 12,
+                            paddingTop: 26,
+                            paddingBottom: 8,
+                        }}>
+                            <Text style={{ position: 'absolute', top: 8, left: 12, fontSize: 12, color: theme.colors.onSurfaceVariant }}>
+                                Monto
+                            </Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <MaskInput
+                                    style={{ flex: 1, fontSize: 16, color: theme.colors.onSurface, paddingVertical: 0 }}
+                                    value={docMonto.toString()}
+                                    keyboardType="numeric"
+                                    onChangeText={(masked, unmasked) => {
+                                        setDocMonto(parseInt(unmasked) || 0)
+                                    }}
+                                    mask={dollarMask}
+                                    placeholderTextColor={theme.colors.onSurfaceVariant}
+                                />
+                                <TouchableOpacity
+                                    onPress={() => { setNegativeMonto(!negativeMonto) }}
+                                    style={{
+                                        padding: 4,
+                                        borderRadius: 4,
+                                        backgroundColor: negativeMonto ? theme.colors.errorContainer : theme.colors.surfaceVariant,
+                                    }}
+                                >
+                                    <MaterialCommunityIcons
+                                        name="minus"
+                                        size={24}
+                                        color={negativeMonto ? theme.colors.error : theme.colors.onSurfaceVariant}
+                                    />
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                    </View>
-                    <AppTextInput label='Proposito'
-                        style={{ marginBottom: 5 }}
-                        mode="flat"
-                        dense={true}
-                        value={docProposito}
-                        autoCapitalize="none"
-                        onChangeText={text => setDocProposito(text)} />
-                    <AppTextInput
-                        style={{ marginBottom: 5 }}
-                        label="Fecha"
-                        mode="flat"
-                        dense={true}
-                        editable={false}
-                        value={DateTime.fromJSDate(docDate).toFormat('yyyy-MM-dd')}
-                        rightIcon="calendar"
-                        onRightIconPress={() => { setShowDocDatePicker(true) }}
-                    />
-                    {showDocDatePicker && (
-                        <DateTimePicker testID="dateTimePicker" value={docDate} mode="date"
-                            display="default" onChange={onChangeDocDatePicker}
-                        />
-                    )}
-                    <AppTextInput
-                        style={{ marginBottom: 5 }}
-                        label="Tipo Doc"
-                        mode="flat"
-                        dense={true}
-                        editable={false}
-                        value={docTipoDocName}
-                        rightIcon="chevron-down"
-                        onRightIconPress={() => { setShowTipoDocList(true) }}
-                    />
-                    {showCategoriaInput &&
                         <AppTextInput
-                            style={{ marginBottom: 5 }}
-                            label="Categoria"
+                            label='Proposito'
                             mode="flat"
-                            dense={true}
-                            editable={false}
-                            value={docCatName}
-                            rightIcon="chevron-down"
-                            onRightIconPress={() => { setShowCategoriaList(true) }}
+                            value={docProposito}
+                            autoCapitalize="none"
+                            onChangeText={text => setDocProposito(text)}
                         />
-                    }
+                        <AppTextInput
+                            label="Fecha"
+                            mode="flat"
+                            editable={false}
+                            value={DateTime.fromJSDate(docDate).toFormat('yyyy-MM-dd')}
+                            rightIcon="calendar"
+                            onRightIconPress={() => { setShowDocDatePicker(true) }}
+                        />
+                        {showDocDatePicker && (
+                            <DateTimePicker testID="dateTimePicker" value={docDate} mode="date"
+                                display="default" onChange={onChangeDocDatePicker}
+                            />
+                        )}
+                        <AppTextInput
+                            label="Tipo Doc"
+                            mode="flat"
+                            editable={false}
+                            value={docTipoDocName}
+                            rightIcon="chevron-down"
+                            onRightIconPress={() => { setShowTipoDocList(true) }}
+                        />
+                        {showCategoriaInput &&
+                            <AppTextInput
+                                label="Categoria"
+                                mode="flat"
+                                editable={false}
+                                value={docCatName}
+                                rightIcon="chevron-down"
+                                onRightIconPress={() => { setShowCategoriaList(true) }}
+                            />
+                        }
+                    </View>
                 </ScrollView>
             </View>
         </View>

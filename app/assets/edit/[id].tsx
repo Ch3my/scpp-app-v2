@@ -128,7 +128,7 @@ export default () => {
                     }}>NO</AppButton>
                 </AppDialog.Actions>
             </AppDialog>
-            <View style={[appStyles.btnRow, { paddingHorizontal: 7, paddingTop: 7 }]}>
+            <View style={[appStyles.btnRow, appStyles.onlyBtnRow]}>
                 <AppIconButton
                     icon="delete"
                     size={30}
