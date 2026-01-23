@@ -12,6 +12,7 @@ web-build/
 .vscode
 %ProgramData%
 credentials.json
+android/
 
 # macOS
 .DS_Store

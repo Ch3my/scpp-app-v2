@@ -1,5 +1,5 @@
 import { Stack } from "expo-router";
-import { useContext, useMemo } from "react";
+import { useContext, useMemo, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import { ScppThemeProvider, ScppThemeContext } from "./ScppThemeContext";
 import { ScppProvider } from "./ScppContext";
@@ -7,12 +7,19 @@ import { ThemeProvider } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Toaster } from "sonner-native";
+import * as NavigationBar from "expo-navigation-bar";
+import * as SystemUI from "expo-system-ui";
 
 const StackLayout: React.FC = () => {
     const { navTheme, themeName } = useContext(ScppThemeContext);
 
     // Memoize styles and theme-related values to avoid recalculation
     const statusBarStyle = useMemo(() => (themeName === "dark" ? "light" : "dark"), [themeName]);
+
+    useEffect(() => {
+        NavigationBar.setButtonStyleAsync(themeName === "dark" ? "light" : "dark");
+        SystemUI.setBackgroundColorAsync(themeName === "dark" ? "#1C1B1F" : "#FFFBFE");
+    }, [themeName]);
 
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
