@@ -32,8 +32,7 @@
     },
     "android": {
       "package": "com.chemy.scppappv2",
-      "edgeToEdgeEnabled": true,
-      "enableProguard": true
+      "edgeToEdgeEnabled": true
     }
   }
 }
