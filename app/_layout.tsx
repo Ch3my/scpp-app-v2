@@ -6,6 +6,7 @@ import { ScppProvider } from "./ScppContext";
 import { ThemeProvider } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { Toaster } from "sonner-native";
 
 const StackLayout: React.FC = () => {
     const { navTheme, themeName } = useContext(ScppThemeContext);
@@ -22,6 +23,7 @@ const StackLayout: React.FC = () => {
                     <Stack.Screen name="index" />
                     <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                 </Stack>
+                <Toaster theme={themeName} position="bottom-center" />
             </ThemeProvider>
         </GestureHandlerRootView>
     );

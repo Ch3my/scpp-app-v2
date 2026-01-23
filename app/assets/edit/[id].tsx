@@ -11,7 +11,6 @@ import { AppIconButton } from '../../../components/ui/AppIconButton';
 import { AppButton } from '../../../components/ui/AppButton';
 import { AppTextInput } from '../../../components/ui/AppTextInput';
 import { AppDialog } from '../../../components/ui/AppDialog';
-import { AppSnackbar } from '../../../components/ui/AppSnackbar';
 import { DateTime } from "luxon";
 import axios, { AxiosResponse } from 'axios'
 import { ScppContext } from "../../ScppContext"
@@ -32,8 +31,6 @@ export default () => {
     const lastX = useSharedValue(0);
     const lastY = useSharedValue(0);
 
-    const [showSnackBar, setShowSnackBar] = useState<boolean>(false);
-    const [snackbarMsg, setSnackbarMsg] = useState<string>("");
     const [showImgModal, setShowImgModal] = useState<boolean>(false);
     const [showConfirmDelete, setShowConfirmDelete] = useState<boolean>(false)
 
@@ -110,12 +107,6 @@ export default () => {
     return (
         <SafeAreaView style={{ flex: 1 }}>
             <Stack.Screen options={{ headerTitle: "Ver Asset" }} />
-            <AppSnackbar
-                duration={2500}
-                visible={showSnackBar}
-                onDismiss={() => { setShowSnackBar(false) }}>
-                {snackbarMsg}
-            </AppSnackbar>
             <AppDialog visible={showConfirmDelete} onDismiss={() => { setShowConfirmDelete(false) }}>
                 <AppDialog.Title>Confirme por Favor</AppDialog.Title>
                 <AppDialog.Content>

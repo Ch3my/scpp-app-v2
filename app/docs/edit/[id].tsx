@@ -11,7 +11,7 @@ import { useTheme } from '../../ScppThemeContext';
 import { AppIconButton } from '../../../components/ui/AppIconButton';
 import { AppTextInput } from '../../../components/ui/AppTextInput';
 import { AppDialog } from '../../../components/ui/AppDialog';
-import { AppSnackbar } from '../../../components/ui/AppSnackbar';
+import { toast } from 'sonner-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { DateTime } from "luxon";
 import axios, { AxiosResponse } from 'axios'
@@ -29,8 +29,6 @@ export default () => {
     const [showCategoriaList, setShowCategoriaList] = useState<boolean>(false);
     const [showCategoriaInput, setShowCategoriaInput] = useState<boolean>(true)
     const [showTipoDocList, setShowTipoDocList] = useState<boolean>(false);
-    const [showSnackBar, setShowSnackBar] = useState<boolean>(false);
-    const [snackbarMsg, setSnackbarMsg] = useState<string>("");
     const [negativeMonto, setNegativeMonto] = useState<boolean>(false)
     const [apiCalling, setApiCalling] = useState<boolean>(false)
 
@@ -119,13 +117,11 @@ export default () => {
         }
         let response = await axios.put(apiPrefix + '/documentos', apiArgs)
         if (response.data.hasErrors) {
-            setSnackbarMsg("Error al editar documento")
-            setShowSnackBar(true)
+            toast.error("Error al editar documento")
             setApiCalling(false)
             return
         }
-        setSnackbarMsg("Documento editado con Exito")
-        setShowSnackBar(true)
+        toast.success("Documento editado con Exito")
         setRefetchdocs(true)
         setApiCalling(false)
     }
@@ -140,12 +136,6 @@ export default () => {
     return (
         <SafeAreaView style={{ flex: 1 }}  >
             <Stack.Screen options={{ headerTitle: "Editar Documento" }} />
-            <AppSnackbar
-                duration={2500}
-                visible={showSnackBar}
-                onDismiss={() => { setShowSnackBar(false) }}>
-                {snackbarMsg}
-            </AppSnackbar>
             <AppDialog visible={showCategoriaList} onDismiss={() => { setShowCategoriaList(false) }}>
                 <AppDialog.Title>Categoria</AppDialog.Title>
                 <AppDialog.ScrollArea>

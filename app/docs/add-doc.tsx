@@ -10,7 +10,7 @@ import { AppIconButton } from '../../components/ui/AppIconButton';
 import { AppButton } from '../../components/ui/AppButton';
 import { AppTextInput } from '../../components/ui/AppTextInput';
 import { AppDialog } from '../../components/ui/AppDialog';
-import { AppSnackbar } from '../../components/ui/AppSnackbar';
+import { toast } from 'sonner-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { DateTime } from "luxon";
 import axios from 'axios'
@@ -29,8 +29,6 @@ export default () => {
     const [showTipoDocList, setShowTipoDocList] = useState<boolean>(false)
     const [apiCalling, setApiCalling] = useState<boolean>(false)
 
-    const [showSnackBar, setShowSnackBar] = useState<boolean>(false)
-    const [snackbarMsg, setSnackbarMsg] = useState<string>("")
     const [negativeMonto, setNegativeMonto] = useState<boolean>(false)
 
     let [docDate, setDocDate] = useState<Date>(new Date())
@@ -65,22 +63,18 @@ export default () => {
     }, [])
     const saveDoc = async () => {
         setApiCalling(true)
-        setShowSnackBar(false)
         if (docTipoDocId == 1 && docCatId == 0) {
-            setSnackbarMsg("Selecciona la categoria")
-            setShowSnackBar(true)
+            toast.error("Selecciona la categoria")
             setApiCalling(false)
             return
         }
         if (docProposito == "") {
-            setSnackbarMsg("Ingresa Proposito")
-            setShowSnackBar(true)
+            toast.error("Ingresa Proposito")
             setApiCalling(false)
             return
         }
         if (docTipoDocId == 1 && docMonto == 0) {
-            setSnackbarMsg("Ingresa el Monto")
-            setShowSnackBar(true)
+            toast.error("Ingresa el Monto")
             setApiCalling(false)
             return
         }
@@ -110,13 +104,11 @@ export default () => {
         }
         let response = await axios.post(apiPrefix + '/documentos', apiArgs)
         if (response.data.hasErrors) {
-            setSnackbarMsg("Error al guardar documento")
-            setShowSnackBar(true)
+            toast.error("Error al guardar documento")
             setApiCalling(false)
             return
         }
-        setSnackbarMsg("Documento guardado con Exito")
-        setShowSnackBar(true)
+        toast.success("Documento guardado con Exito")
         setRefetchdocs(true)
         setApiCalling(false)
     }
@@ -131,12 +123,6 @@ export default () => {
     return (
         <View style={{ flex: 1 }}>
             <Stack.Screen options={{ headerTitle: "Agregar Documento" }} />
-            <AppSnackbar
-                duration={2500}
-                visible={showSnackBar}
-                onDismiss={() => { setShowSnackBar(false) }}>
-                {snackbarMsg}
-            </AppSnackbar>
             <AppDialog visible={showCategoriaList} onDismiss={() => { setShowCategoriaList(false) }}>
                 <AppDialog.Title>Categoria</AppDialog.Title>
                 <AppDialog.ListArea data={categorias}

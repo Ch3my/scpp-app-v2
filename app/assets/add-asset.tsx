@@ -12,7 +12,7 @@ import { AppIconButton } from '../../components/ui/AppIconButton';
 import { AppButton } from '../../components/ui/AppButton';
 import { AppTextInput } from '../../components/ui/AppTextInput';
 import { AppDialog } from '../../components/ui/AppDialog';
-import { AppSnackbar } from '../../components/ui/AppSnackbar';
+import { toast } from 'sonner-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { DateTime } from "luxon";
 import axios, { AxiosResponse } from 'axios'
@@ -33,9 +33,7 @@ export default () => {
     const [showCamera, setShowCamera] = useState<boolean>(false);
     const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
     const [showCategoriaList, setShowCategoriaList] = useState<boolean>(false);
-    const [showSnackBar, setShowSnackBar] = useState<boolean>(false);
     const [cameraWorking, setCameraWorking] = useState<boolean>(false);
-    const [snackbarMsg, setSnackbarMsg] = useState<string>("");
     const [rotation, setRotation] = useState(0);
 
     let [assetDescription, setAssetDescription] = useState<string>("")
@@ -80,20 +78,16 @@ export default () => {
         setShowCategoriaList(false)
     }
     const saveAsset = async () => {
-        setShowSnackBar(false)
         if (!photoLocation) {
-            setSnackbarMsg("Todos los campos son Obligatorios")
-            setShowSnackBar(true)
+            toast.error("Todos los campos son Obligatorios")
             return
         }
         if (assetCatName == "") {
-            setSnackbarMsg("Todos los campos son Obligatorios")
-            setShowSnackBar(true)
+            toast.error("Todos los campos son Obligatorios")
             return
         }
         if (assetDescription == "") {
-            setSnackbarMsg("Todos los campos son Obligatorios")
-            setShowSnackBar(true)
+            toast.error("Todos los campos son Obligatorios")
             return
         }
         let compressImgUri = await CompressAndResizeImage(photoLocation, rotation)
@@ -107,12 +101,10 @@ export default () => {
         }
         let response = await axios.post(apiPrefix + '/assets', apiArgs)
         if (response.data.hasErrors) {
-            setSnackbarMsg("Error al guardar Asset")
-            setShowSnackBar(true)
+            toast.error("Error al guardar Asset")
             return
         }
-        setSnackbarMsg("Asset guardado con Exito")
-        setShowSnackBar(true)
+        toast.success("Asset guardado con Exito")
     }
 
     const cameraReady = useCallback(() => {
@@ -157,12 +149,6 @@ export default () => {
                     </>
                 }
             </Modal>
-            <AppSnackbar
-                duration={2500}
-                visible={showSnackBar}
-                onDismiss={() => { setShowSnackBar(false) }}>
-                {snackbarMsg}
-            </AppSnackbar>
             <AppDialog visible={showCategoriaList} onDismiss={() => { setShowCategoriaList(false) }}>
                 <AppDialog.Title>Categoria</AppDialog.Title>
                 <AppDialog.ListArea
