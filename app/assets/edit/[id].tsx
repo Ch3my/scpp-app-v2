@@ -12,7 +12,8 @@ import { AppButton } from '../../../components/ui/AppButton';
 import { AppTextInput } from '../../../components/ui/AppTextInput';
 import { AppDialog } from '../../../components/ui/AppDialog';
 import { DateTime } from "luxon";
-import axios, { AxiosResponse } from 'axios'
+import { AxiosResponse } from 'axios'
+import apiClient from '../../../api/axiosClient'
 import { ScppContext } from "../../ScppContext"
 import { useLocalSearchParams } from 'expo-router';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -21,7 +22,7 @@ import Animated, { useAnimatedStyle, useSharedValue } from "react-native-reanima
 export default () => {
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
-    const { sessionHash, apiPrefix, isReady } = useContext(ScppContext);
+    const { } = useContext(ScppContext);
 
     const scale = useSharedValue(1);
     const savedScale = useSharedValue(1);
@@ -44,9 +45,8 @@ export default () => {
     useEffect(() => {
         const getData = async () => {
             try {
-                const response: AxiosResponse<any> = await axios.get(apiPrefix + '/assets', {
+                const response: AxiosResponse<any> = await apiClient.get('/assets', {
                     params: {
-                        sessionHash,
                         id: [id]
                     }
                 });
@@ -66,7 +66,7 @@ export default () => {
 
     const deleteAsset = async () => {
         try {
-            await axios.delete(apiPrefix + '/assets', { data: { id, sessionHash } })
+            await apiClient.delete('/assets', { data: { id } })
             router.back()
         } catch (error) {
             console.log(error)

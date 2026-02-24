@@ -5,10 +5,11 @@ import { Stack } from "expo-router";
 import { View, Image } from "react-native";
 import { useTheme } from "./ScppThemeContext";
 import { GetAppStyles } from "../styles/styles";
+import apiClient from "../api/axiosClient";
 
 const StartPage = () => {
     const [isRedirecting, setIsRedirecting] = useState(false); // Track redirection state
-    const { sessionHash, apiPrefix, isReady, fetchAyudas } = useContext(ScppContext);
+    const { sessionHash, isReady, fetchAyudas } = useContext(ScppContext);
     const router = useRouter(); // For programmatic navigation
     const theme = useTheme();
     const appStyles = GetAppStyles(theme);
@@ -24,11 +25,9 @@ const StartPage = () => {
             }
 
             try {
-                const queryParams = new URLSearchParams({ sessionHash });
-                const response = await fetch(`${apiPrefix}/check-session?${queryParams}`);
-                const data = await response.json();
+                const response = await apiClient.get('/check-session');
 
-                if (data.success) {
+                if (response.data.success) {
                     fetchAyudas();
                     router.replace("/list-docs"); // Navigate to the target page
                 } else {

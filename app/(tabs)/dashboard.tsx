@@ -3,6 +3,7 @@ import { useTheme } from '../ScppThemeContext';
 import { ScrollView, Dimensions, InteractionManager, RefreshControl, View, Text } from 'react-native';
 import { useFocusEffect, useNavigation } from "expo-router";
 import axios, { CancelTokenSource } from 'axios';
+import apiClient from '../../api/axiosClient';
 import { ScppContext } from "../ScppContext";
 import LineChart from '../../components/ChartSVG/LineChart';
 import BarChart from '../../components/ChartSVG/BarChart';
@@ -14,7 +15,7 @@ import { GetAppStyles } from '../../styles/styles';
 
 const Dashboard = () => {
     const theme = useTheme();
-    const { sessionHash, apiPrefix } = useContext(ScppContext);
+    const { } = useContext(ScppContext);
     const appStyles = GetAppStyles(theme)
     const [refreshing, setRefreshing] = useState(false);
     const [monthlyGraphData, setMonthlyGraphData] = useState<MonthlyGraphData>({
@@ -43,12 +44,12 @@ const Dashboard = () => {
 
         try {
             const [monthlyGraphResponse, expensesByCategoryResponse] = await Promise.all([
-                axios.get<MonthlyGraphData>(`${apiPrefix}/monthly-graph`, {
-                    params: { sessionHash, nMonths: 5 },
+                apiClient.get<MonthlyGraphData>('/monthly-graph', {
+                    params: { nMonths: 5 },
                     cancelToken: cancelTokenSourceRef.current.token
                 }),
-                axios.get<ExpensesByCategoryData>(`${apiPrefix}/expenses-by-category`, {
-                    params: { sessionHash, nMonths: 12 },
+                apiClient.get<ExpensesByCategoryData>('/expenses-by-category', {
+                    params: { nMonths: 12 },
                     cancelToken: cancelTokenSourceRef.current.token
                 })
             ]);
@@ -62,7 +63,7 @@ const Dashboard = () => {
                 console.error('Error fetching data:', error);
             }
         }
-    }, [apiPrefix, sessionHash]);
+    }, []);
 
     const onRefresh = useCallback(async () => {
         setRefreshing(true);

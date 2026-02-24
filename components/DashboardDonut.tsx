@@ -1,7 +1,8 @@
 import { useState, useContext, useCallback, useEffect } from 'react'
 import DonutChart from './ChartSVG/DonutChart';
 import { ScppContext } from '../app/ScppContext';
-import axios, { AxiosResponse } from 'axios'
+import { AxiosResponse } from 'axios'
+import apiClient from '../api/axiosClient';
 import { useNavigation, useFocusEffect } from "expo-router";
 import { InteractionManager, View, StyleSheet, FlatList, Text } from "react-native"
 import { useTheme } from "../app/ScppThemeContext"
@@ -15,18 +16,14 @@ interface DashboardDonutProps {
 
 const DashboardDonut: React.FC<DashboardDonutProps> = ({ shouldRefresh }) => {
     numeral.locale("es-es")
-    const { sessionHash, apiPrefix } = useContext(ScppContext);
+    const { } = useContext(ScppContext);
     const [percentage, setPercentage] = useState<number>(0);
     const [topGastos, setTopGastos] = useState<any[]>([]);
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
 
     const getData = async () => {
-        const response: AxiosResponse<any> = await axios.get(apiPrefix + '/curr-month-spending', {
-            params: {
-                sessionHash
-            }
-        });
+        const response: AxiosResponse<any> = await apiClient.get('/curr-month-spending');
         if (response.data) {
             setPercentage(response.data.porcentajeUsado)
             if (response.data.topGastos) {

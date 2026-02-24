@@ -1,6 +1,6 @@
 import { View, KeyboardAvoidingView, StyleSheet, Image } from 'react-native'
 import { useState, useContext } from 'react'
-import axios from 'axios'
+import apiClient from '../../api/axiosClient'
 import { ScppContext } from "../ScppContext"
 import { router, Stack } from 'expo-router';
 import { AppButton } from '../../components/ui/AppButton';
@@ -8,7 +8,7 @@ import { AppTextInput } from '../../components/ui/AppTextInput';
 import { useTheme } from '../ScppThemeContext';
 
 export default () => {
-    const { sessionHash, apiPrefix, updateSessionHash } = useContext(ScppContext);
+    const { updateSessionHash } = useContext(ScppContext);
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
     const theme = useTheme();
@@ -50,10 +50,7 @@ export default () => {
     const login = async (username: string, password: string) => {
         let response: any = {}
         try {
-            response = await axios.post(
-                apiPrefix + '/login',
-                { username, password }
-            )
+            response = await apiClient.post('/login', { username, password })
         } catch (error) {
             console.log(error)
             return

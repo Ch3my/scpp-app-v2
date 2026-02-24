@@ -15,7 +15,7 @@ import { AppDialog } from '../../components/ui/AppDialog';
 import { toast } from 'sonner-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { DateTime } from "luxon";
-import axios, { AxiosResponse } from 'axios'
+import apiClient from '../../api/axiosClient'
 import { ScppContext } from "../ScppContext"
 import { ConvertToBase64 } from "../../helpers/base64-file-enconder"
 import { CompressAndResizeImage } from "../../helpers/img-compressor"
@@ -24,7 +24,7 @@ import React from 'react';
 export default () => {
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
-    const { sessionHash, apiPrefix, categorias } = useContext(ScppContext);
+    const { categorias } = useContext(ScppContext);
 
     const [cameraPermission, setCameraPermission] = useState<string | null>(null);
     const [type, setType] = useState<CameraType>("back");
@@ -97,9 +97,8 @@ export default () => {
             descripcion: assetDescription,
             assetData: encondedFile.base64String,
             fecha: DateTime.fromJSDate(assetDate).toFormat('yyyy-MM-dd'),
-            sessionHash
         }
-        let response = await axios.post(apiPrefix + '/assets', apiArgs)
+        let response = await apiClient.post('/assets', apiArgs)
         if (response.data.hasErrors) {
             toast.error("Error al guardar Asset")
             return

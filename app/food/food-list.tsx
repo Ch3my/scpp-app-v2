@@ -3,12 +3,12 @@ import { FlatList, View, Text } from 'react-native';
 import { useTheme } from '../ScppThemeContext';
 import { Stack } from "expo-router";
 import { ScppContext } from "../ScppContext"
-import axios from 'axios';
+import apiClient from '../../api/axiosClient';
 import { DateTime } from 'luxon';
 import { GetAppStyles } from "../../styles/styles"
 
 const FoodList: React.FC = () => {
-    const { sessionHash, apiPrefix } = useContext(ScppContext);
+    const { } = useContext(ScppContext);
     const [foodItems, setFoodItems] = useState([]);
     const [apiCalling, setApiCalling] = useState<boolean>(true)
     const theme = useTheme();
@@ -17,10 +17,7 @@ const FoodList: React.FC = () => {
     const getData = async () => {
         let response: any = {}
         try {
-            response = await axios.get(
-                apiPrefix + '/food/item-quantity',
-                { params: {sessionHash} }
-            )
+            response = await apiClient.get('/food/item-quantity')
         } catch (error) {
             console.log(error)
             return

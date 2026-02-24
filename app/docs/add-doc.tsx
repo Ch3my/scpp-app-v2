@@ -13,7 +13,7 @@ import { AppDialog } from '../../components/ui/AppDialog';
 import { toast } from 'sonner-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { DateTime } from "luxon";
-import axios from 'axios'
+import apiClient from '../../api/axiosClient'
 import { ScppContext } from "../ScppContext"
 import MaskInput, { createNumberMask } from 'react-native-mask-input';
 import { TextInput as RNTextInput } from 'react-native';
@@ -21,7 +21,7 @@ import { TextInput as RNTextInput } from 'react-native';
 export default () => {
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
-    const { sessionHash, apiPrefix, setRefetchdocs, tipoDocumentos, categorias } = useContext(ScppContext);
+    const { setRefetchdocs, tipoDocumentos, categorias } = useContext(ScppContext);
 
     const [showDocDatePicker, setShowDocDatePicker] = useState<boolean>(false)
     const [showCategoriaInput, setShowCategoriaInput] = useState<boolean>(true)
@@ -90,19 +90,17 @@ export default () => {
             fecha: string;
             monto: number;
             fk_tipoDoc: number;
-            sessionHash: string;
         } = {
             fk_categoria: null,
             proposito: docProposito,
             fecha: DateTime.fromJSDate(docDate).toFormat('yyyy-MM-dd'),
             monto: computedMonto,
             fk_tipoDoc: docTipoDocId,
-            sessionHash,
         }
         if (docTipoDocId == 1) {
             apiArgs.fk_categoria = docCatId
         }
-        let response = await axios.post(apiPrefix + '/documentos', apiArgs)
+        let response = await apiClient.post('/documentos', apiArgs)
         if (response.data.hasErrors) {
             toast.error("Error al guardar documento")
             setApiCalling(false)

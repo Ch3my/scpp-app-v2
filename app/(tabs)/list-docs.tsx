@@ -4,6 +4,7 @@ import { useTheme } from '../ScppThemeContext';
 import { GetAppStyles } from "../../styles/styles"
 import { useEffect, useState, useContext, useCallback } from 'react';
 import axios, { AxiosResponse } from 'axios'
+import apiClient from '../../api/axiosClient'
 import { ScppContext } from "../ScppContext"
 import { DateTime } from "luxon";
 import numeral from "numeral"
@@ -23,7 +24,7 @@ export default () => {
 
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
-    const { sessionHash, apiPrefix, refetchDocs, setRefetchdocs, tipoDocumentos } = useContext(ScppContext);
+    const { refetchDocs, setRefetchdocs, tipoDocumentos } = useContext(ScppContext);
     const [docsList, setDocsList] = useState<Documento[]>([])
 
     const [fechaInicio, setFechaInicio] = useState<DateTime | null>(DateTime.local().startOf("month"))
@@ -79,7 +80,7 @@ export default () => {
             localSearchPhraseIgnoreOtherFilters = aSearchPhraseIgnoreOtherFilters
         }
         try {
-            const response: AxiosResponse<any> = await axios.get(apiPrefix + '/documentos', {
+            const response: AxiosResponse<any> = await apiClient.get('/documentos', {
                 params: {
                     fechaInicio: localFechaInicio?.toFormat('yyyy-MM-dd'),
                     fechaTermino: localFechaTermino?.toFormat('yyyy-MM-dd'),
@@ -87,7 +88,6 @@ export default () => {
                     fk_categoria: localCategoriaId,
                     searchPhrase: aSearchPhrase,
                     searchPhraseIgnoreOtherFilters: aSearchPhraseIgnoreOtherFilters,
-                    sessionHash
                 },
             });
             if (response.data) {
@@ -110,8 +110,6 @@ export default () => {
         tipoDocFilterId,
         categoriaFilterId,
         searchPhrase,
-        sessionHash,
-        apiPrefix,
     ]);
 
     useEffect(() => {
@@ -196,7 +194,7 @@ export default () => {
             setDocsList(prevDocs => prevDocs.filter(doc => doc.id !== id))
             // TODO. Update suma Total o lo hace getData luego
             try {
-                await axios.delete(apiPrefix + '/documentos', { data: { id, sessionHash } })
+                await apiClient.delete('/documentos', { data: { id } })
                 getData(null, null, null, null, searchPhrase, false)
             } catch (error) {
                 console.log(error)

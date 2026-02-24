@@ -2,7 +2,8 @@ import { useEffect, useState, useContext, useCallback, useRef, useMemo } from 'r
 import { DateTime } from "luxon";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { View, StyleSheet, Text } from 'react-native';
-import axios, { AxiosResponse } from 'axios';
+import { AxiosResponse } from 'axios';
+import apiClient from '../api/axiosClient';
 import { ScppContext } from "../app/ScppContext"
 import { Picker } from '@react-native-picker/picker';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
@@ -40,7 +41,7 @@ export default ({
 }: FiltersModalProps) => {
     const theme = useTheme();
     const appStyles = GetAppStyles(theme);
-    const { sessionHash, apiPrefix } = useContext(ScppContext);
+    const { } = useContext(ScppContext);
 
     const bottomSheetRef = useRef<BottomSheet>(null);
 
@@ -60,11 +61,7 @@ export default ({
     useEffect(() => {
         const getCategorias = async () => {
             try {
-                const response: AxiosResponse<any> = await axios.get(apiPrefix + '/categorias', {
-                    params: {
-                        sessionHash
-                    }
-                });
+                const response: AxiosResponse<any> = await apiClient.get('/categorias');
                 if (response.data) {
                     // Add the item to the top of the array
                     const modifiedData = [
@@ -79,7 +76,7 @@ export default ({
         }
 
         getCategorias()
-    }, [apiPrefix, sessionHash])
+    }, [])
 
     useEffect(() => {
         if (visible) {

@@ -3,7 +3,8 @@ import { Link, useNavigation, Stack, router, useFocusEffect } from "expo-router"
 import { useTheme } from '../ScppThemeContext';
 import { GetAppStyles } from "../../styles/styles"
 import { useEffect, useState, useCallback, useContext } from 'react';
-import axios, { AxiosResponse } from 'axios'
+import { AxiosResponse } from 'axios'
+import apiClient from '../../api/axiosClient'
 import { ScppContext } from "../ScppContext"
 
 import Reanimated, { Extrapolation, interpolate, useAnimatedStyle } from "react-native-reanimated";
@@ -16,7 +17,7 @@ import { AppButton } from "../../components/ui/AppButton";
 export default () => {
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
-    const { sessionHash, apiPrefix } = useContext(ScppContext);
+    const { } = useContext(ScppContext);
     const [assetList, setAssetList] = useState<Asset[]>([])
 
     const [getAssetsApiCalling, setGetAssetsApiCalling] = useState<boolean>(true)
@@ -26,11 +27,7 @@ export default () => {
     const getData = async () => {
         setGetAssetsApiCalling(true)
         try {
-            const response: AxiosResponse<any> = await axios.get(apiPrefix + '/assets', {
-                params: {
-                    sessionHash
-                }
-            });
+            const response: AxiosResponse<any> = await apiClient.get('/assets');
             if (response.data) {
                 setAssetList(response.data)
             }
@@ -41,7 +38,7 @@ export default () => {
     }
     const deleteAsset = async () => {
         try {
-            await axios.delete(apiPrefix + '/assets', { data: { id: selectedId, sessionHash } })
+            await apiClient.delete('/assets', { data: { id: selectedId } })
             getData()
         } catch (error) {
             console.log(error)

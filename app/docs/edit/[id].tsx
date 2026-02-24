@@ -14,7 +14,8 @@ import { AppDialog } from '../../../components/ui/AppDialog';
 import { toast } from 'sonner-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { DateTime } from "luxon";
-import axios, { AxiosResponse } from 'axios'
+import { AxiosResponse } from 'axios'
+import apiClient from '../../../api/axiosClient'
 import { ScppContext } from "../../ScppContext"
 import MaskInput, { createNumberMask } from 'react-native-mask-input';
 import { useLocalSearchParams } from 'expo-router';
@@ -23,7 +24,7 @@ export default () => {
     const { id } = useLocalSearchParams();
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
-    const { sessionHash, apiPrefix, setRefetchdocs, tipoDocumentos, categorias } = useContext(ScppContext);
+    const { setRefetchdocs, tipoDocumentos, categorias } = useContext(ScppContext);
 
     const [showDocDatePicker, setShowDocDatePicker] = useState<boolean>(false);
     const [showCategoriaList, setShowCategoriaList] = useState<boolean>(false);
@@ -44,9 +45,8 @@ export default () => {
     useEffect(() => {
         const getOriginalDoc = async () => {
             try {
-                const response: AxiosResponse<any> = await axios.get(apiPrefix + '/documentos', {
+                const response: AxiosResponse<any> = await apiClient.get('/documentos', {
                     params: {
-                        sessionHash,
                         id: [id]
                     }
                 });
@@ -99,31 +99,34 @@ export default () => {
     }
     const updateDoc = async () => {
         setApiCalling(true)
-        let computedMonto = docMonto
-        if (negativeMonto) {
-            computedMonto *= -1
-        }
-        let apiArgs = {
-            id,
-            sessionHash,
-            fk_categoria: docCatId,
-            proposito: docProposito,
-            fecha: docDate.toFormat('yyyy-MM-dd'),
-            monto: computedMonto,
-            fk_tipoDoc: docTipoDocId
-        }
-        if (docTipoDocId != 1) {
-            apiArgs.fk_categoria = null
-        }
-        let response = await axios.put(apiPrefix + '/documentos', apiArgs)
-        if (response.data.hasErrors) {
+        try {
+            let computedMonto = docMonto
+            if (negativeMonto) {
+                computedMonto *= -1
+            }
+            let apiArgs = {
+                id: Number(id),
+                fk_categoria: docCatId,
+                proposito: docProposito,
+                fecha: docDate.toFormat('yyyy-MM-dd'),
+                monto: computedMonto,
+                fk_tipoDoc: docTipoDocId
+            }
+            if (docTipoDocId != 1) {
+                apiArgs.fk_categoria = null
+            }
+            let response = await apiClient.put('/documentos', apiArgs)
+            if (response.data.hasErrors) {
+                toast.error("Error al editar documento")
+                return
+            }
+            toast.success("Documento editado con Exito")
+            setRefetchdocs(true)
+        } catch (error: any) {
             toast.error("Error al editar documento")
+        } finally {
             setApiCalling(false)
-            return
         }
-        toast.success("Documento editado con Exito")
-        setRefetchdocs(true)
-        setApiCalling(false)
     }
 
     const dollarMask = createNumberMask({

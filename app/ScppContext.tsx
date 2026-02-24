@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { GetData, StoreData } from "../helpers/async-storage-helper"
-import axios, { AxiosResponse } from 'axios'
+import { AxiosResponse } from 'axios'
+import apiClient, { setSessionHash as setApiSessionHash } from '../api/axiosClient';
 import { Categoria } from '../models/Categoria';
 import { TipoDoc } from '../models/TipoDoc';
 
@@ -48,6 +49,7 @@ export const ScppProvider: React.FC<ScppProviderProps> = ({
             const data = await GetData('sessionHash');
             if (data) {
                 setSessionHash(data);
+                setApiSessionHash(data); // Sync to axios client
             }
             setIsReady(true)
         };
@@ -56,17 +58,14 @@ export const ScppProvider: React.FC<ScppProviderProps> = ({
 
     const updateSessionHash = async (value: string) => {
         setSessionHash(value)
+        setApiSessionHash(value); // Sync to axios client
         await StoreData("sessionHash", value)
     };
 
     const fetchAyudas = async () => {
         const getCategorias = async () => {
             try {
-                const response: AxiosResponse<any> = await axios.get(apiPrefix + '/categorias', {
-                    params: {
-                        sessionHash
-                    }
-                });
+                const response: AxiosResponse<any> = await apiClient.get('/categorias');
                 if (response.data) {
                     setCategorias(response.data)
                 }
@@ -76,11 +75,7 @@ export const ScppProvider: React.FC<ScppProviderProps> = ({
         };
         const getTipoDoc = async () => {
             try {
-                const response: AxiosResponse<any> = await axios.get(apiPrefix + '/tipo-docs', {
-                    params: {
-                        sessionHash
-                    }
-                });
+                const response: AxiosResponse<any> = await apiClient.get('/tipo-docs');
                 if (response.data) {
                     setTipoDocumentos(response.data)
                 }
