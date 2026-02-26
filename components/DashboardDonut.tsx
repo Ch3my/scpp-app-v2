@@ -1,58 +1,28 @@
-import { useState, useContext, useCallback, useEffect } from 'react'
-import DonutChart from './ChartSVG/DonutChart';
-import { ScppContext } from '../app/ScppContext';
-import { AxiosResponse } from 'axios'
-import apiClient from '../api/axiosClient';
-import { useNavigation, useFocusEffect } from "expo-router";
-import { InteractionManager, View, StyleSheet, FlatList, Text } from "react-native"
+import React from 'react'
+import DonutChart from './ChartSkia/DonutChart';
+import { View, StyleSheet, Text } from "react-native"
 import { useTheme } from "../app/ScppThemeContext"
 import numeral from "numeral"
 import "numeral/locales/es-es";
 import { GetAppStyles } from "../styles/styles"
 
 interface DashboardDonutProps {
-    shouldRefresh: boolean;
+    percentage: number;
+    topGastos: any[];
+    animationDelay?: number;
 }
 
-const DashboardDonut: React.FC<DashboardDonutProps> = ({ shouldRefresh }) => {
+const DashboardDonut: React.FC<DashboardDonutProps> = ({ percentage, topGastos, animationDelay = 0 }) => {
     numeral.locale("es-es")
-    const { } = useContext(ScppContext);
-    const [percentage, setPercentage] = useState<number>(0);
-    const [topGastos, setTopGastos] = useState<any[]>([]);
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
-
-    const getData = async () => {
-        const response: AxiosResponse<any> = await apiClient.get('/curr-month-spending');
-        if (response.data) {
-            setPercentage(response.data.porcentajeUsado)
-            if (response.data.topGastos) {
-                setTopGastos(response.data.topGastos.slice(0, 5) || [])
-            }
-        }
-    };
-
-    useEffect(() => {
-        if (shouldRefresh) {
-            getData()
-        }
-    }, [shouldRefresh])
-
-    useFocusEffect(
-        useCallback(() => {
-            const task = InteractionManager.runAfterInteractions(() => {
-                getData()
-            })
-            return () => task.cancel();
-        }, [useNavigation().isFocused()])
-    );
 
     return (
         <View>
             <Text style={[appStyles.titleLarge, {marginBottom:10}]}>Uso del Presupuesto Mes</Text>
             <View style={styles.container}>
                 <View style={{ flex: 0.4 }}>
-                    <DonutChart percentage={percentage} label='Gastado' size={120}></DonutChart>
+                    <DonutChart percentage={percentage} label='Gastado' size={120} animationDelay={animationDelay} />
                 </View>
                 <View style={{ flex: 0.6 }}>
                     {topGastos.map((item, index) => (

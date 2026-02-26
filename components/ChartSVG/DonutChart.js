@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useMemo } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { View, StyleSheet, Text } from 'react-native';
 import { useTheme } from "../../app/ScppThemeContext"
@@ -7,6 +7,7 @@ import Animated, {
   useSharedValue,
   useAnimatedProps,
   withTiming,
+  withDelay,
   Easing,
   cancelAnimation
 } from 'react-native-reanimated';
@@ -17,8 +18,9 @@ const DonutChart = ({
   percentage = 0,
   size = 200,
   strokeWidth = 20,
-  duration = 1000,
-  label = 'Progress'
+  duration = 700,
+  label = 'Progress',
+  animationDelay = 0
 }) => {
   const validPercentage = Math.max(0, Math.min(parseFloat(percentage) || 0, 100));
   const animatedPercentage = useSharedValue(0);
@@ -28,11 +30,11 @@ const DonutChart = ({
 
   const animateChart = useCallback(() => {
     animatedPercentage.value = animatedPercentage.value - 5; // backup a bit, dont go to 0 looks ugly
-    animatedPercentage.value = withTiming(validPercentage, {
+    animatedPercentage.value = withDelay(animationDelay, withTiming(validPercentage, {
       duration,
       easing: Easing.out(Easing.cubic),
-    });
-  }, [validPercentage, duration, animatedPercentage]);
+    }));
+  }, [validPercentage, duration, animatedPercentage, animationDelay]);
 
   useEffect(() => {
     animateChart();
@@ -54,16 +56,17 @@ const DonutChart = ({
   );
 
   const animatedProps = useAnimatedProps(() => {
-    const strokeDashoffset = circumference * (1 - animatedPercentage.value / 100);
+    'worklet';
     return {
-      strokeDashoffset,
+      strokeDashoffset: circumference * (1 - animatedPercentage.value / 100),
     };
   });
 
-  const getColor = (value) => {
+  const progressColor = useMemo(() => {
     // Matte green: rgb(76, 175, 80)
     // Matte yellow: rgb(255, 235, 59)
     // Matte red: rgb(211, 47, 47)
+    const value = validPercentage;
 
     if (value <= 50) {
       // Interpolate between matte green and matte yellow
@@ -81,7 +84,7 @@ const DonutChart = ({
     }
     // For values over 100%, return matte red
     return 'rgb(211, 47, 47)';
-  };
+  }, [validPercentage]);
 
   return (
     <View style={styles.container}>
@@ -99,7 +102,7 @@ const DonutChart = ({
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke={getColor(validPercentage)}
+            stroke={progressColor}
             strokeWidth={strokeWidth}
             fill="none"
             strokeDasharray={circumference}

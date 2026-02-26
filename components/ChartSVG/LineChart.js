@@ -5,6 +5,7 @@ import Animated, {
     useSharedValue,
     useAnimatedProps,
     withTiming,
+    withDelay,
     Easing,
 } from 'react-native-reanimated';
 import numeral from 'numeral';
@@ -19,25 +20,27 @@ const PADDING = {
     BOTTOM: 55
 };
 const Y_AXIS_DIVISIONS = 4;
-const ANIMATION_DURATION = 1000;
+const LINE_ANIMATION_DURATION = 600;
+const DOT_ANIMATION_DURATION = 300;
+const DOT_STAGGER_DELAY = 50;
 const DOT_RADIUS = 4;
 const STROKE_WIDTH = 1;
 const STROKE_WIDTH_LINE = 2;
 const X_LABEL_OFFSET = 10; // New constant for x-label offset
 
-const LineChart = ({ totalHeight, totalWidth, datasets, labels, labelsColor, yAxisPrefix }) => {
+const LineChart = ({ totalHeight, totalWidth, datasets, labels, labelsColor, yAxisPrefix, animationDelay = 0 }) => {
     const chartHeight = totalHeight - PADDING.TOP - PADDING.BOTTOM;
     const chartWidth = totalWidth - PADDING.LEFT - PADDING.RIGHT;
     const higherPoint = Math.max(0, ...datasets.flatMap(d => d.data));
 
     const memoizedComponents = useMemo(() => {
-        const paths = buildPaths(chartHeight, chartWidth, datasets, higherPoint);
-        const dots = buildDots(chartHeight, chartWidth, datasets, higherPoint);
+        const paths = buildPaths(chartHeight, chartWidth, datasets, higherPoint, animationDelay);
+        const dots = buildDots(chartHeight, chartWidth, datasets, higherPoint, animationDelay);
         const labelsX = buildLabelsX(chartWidth, chartHeight, labels, labelsColor);
         const labelsY = buildLabelsY(chartHeight, higherPoint, yAxisPrefix, labelsColor);
         const lines = buildLinesXY(chartWidth, chartHeight, labelsColor);
         return { paths, dots, labelsX, labelsY, lines };
-    }, [chartHeight, chartWidth, datasets, higherPoint, labels, labelsColor, yAxisPrefix]);
+    }, [chartHeight, chartWidth, datasets, higherPoint, labels, labelsColor, yAxisPrefix, animationDelay]);
 
     return (
         <View>
@@ -108,16 +111,19 @@ const buildLabelsY = (chartHeight, higherPoint, yAxisPrefix, labelsColor) => {
     });
 };
 
-const AnimatedLine = ({ d, color }) => {
+const AnimatedLine = ({ d, color, delay = 0 }) => {
     const progress = useSharedValue(0);
 
     useEffect(() => {
-        progress.value = withTiming(1, { duration: ANIMATION_DURATION, easing: Easing.out(Easing.cubic) });
+        progress.value = withDelay(delay, withTiming(1, { duration: LINE_ANIMATION_DURATION, easing: Easing.out(Easing.cubic) }));
     }, []);
 
-    const animatedProps = useAnimatedProps(() => ({
-        strokeDashoffset: 1000 - (progress.value * 1000),
-    }));
+    const animatedProps = useAnimatedProps(() => {
+        'worklet';
+        return {
+            strokeDashoffset: 1000 - (progress.value * 1000),
+        };
+    });
 
     return (
         <AnimatedPath
@@ -131,28 +137,32 @@ const AnimatedLine = ({ d, color }) => {
     );
 };
 
-const buildPaths = (chartHeight, chartWidth, datasets, higherPoint) => {
+const buildPaths = (chartHeight, chartWidth, datasets, higherPoint, baseDelay = 0) => {
     return datasets.map((dataset, index) => {
         const d = buildPathD(chartHeight, chartWidth, dataset.data, higherPoint);
-        return <AnimatedLine key={index} d={d} color={dataset.color} />;
+        return <AnimatedLine key={index} d={d} color={dataset.color} delay={baseDelay + (index * 100)} />;
     });
 };
 
-const AnimatedDot = ({ cx, cy, fill }) => {
+const AnimatedDot = ({ cx, cy, fill, delay = 0 }) => {
     const scale = useSharedValue(0);
 
     useEffect(() => {
-        scale.value = withTiming(1, { duration: ANIMATION_DURATION, easing: Easing.out(Easing.cubic) });
+        scale.value = withDelay(delay, withTiming(1, { duration: DOT_ANIMATION_DURATION, easing: Easing.out(Easing.back(2)) }));
     }, []);
 
-    const animatedProps = useAnimatedProps(() => ({
-        r: DOT_RADIUS * scale.value,
-    }));
+    const animatedProps = useAnimatedProps(() => {
+        'worklet';
+        return {
+            r: DOT_RADIUS * scale.value,
+        };
+    });
 
     return <AnimatedCircle cx={cx} cy={cy} fill={fill} animatedProps={animatedProps} />;
 };
 
-const buildDots = (chartHeight, chartWidth, datasets, higherPoint) => {
+const buildDots = (chartHeight, chartWidth, datasets, higherPoint, baseDelay = 0) => {
+    const lineAnimationTotal = baseDelay + LINE_ANIMATION_DURATION + (datasets.length * 100);
     return datasets.flatMap((dataset, datasetIndex) => {
         const pointCoordinates = buildPointCoordinates(chartHeight, chartWidth, dataset.data, higherPoint);
         return pointCoordinates.map((p, pointIndex) => (
@@ -161,6 +171,7 @@ const buildDots = (chartHeight, chartWidth, datasets, higherPoint) => {
                 cx={p.x}
                 cy={p.y}
                 fill={dataset.color}
+                delay={lineAnimationTotal + (pointIndex * DOT_STAGGER_DELAY)}
             />
         ));
     });

@@ -5,6 +5,7 @@ import Animated, {
     useSharedValue,
     useAnimatedProps,
     withTiming,
+    withDelay,
     Easing,
 } from 'react-native-reanimated';
 import numeral from 'numeral';
@@ -19,6 +20,7 @@ const BarChart = ({
     labels,
     dataset,
     labelsColor,
+    animationDelay = 0,
 }) => {
     const [dimensions, setDimensions] = useState(() => Dimensions.get('window'));
 
@@ -56,8 +58,8 @@ const BarChart = ({
 
     const bars = useMemo(
         () =>
-            buildBars(dataset, maxBarWidth, barHeight, barContainerHeight, maxValueDataset),
-        [dataset, maxBarWidth, barHeight, barContainerHeight, maxValueDataset]
+            buildBars(dataset, maxBarWidth, barHeight, barContainerHeight, maxValueDataset, animationDelay),
+        [dataset, maxBarWidth, barHeight, barContainerHeight, maxValueDataset, animationDelay]
     );
 
     return (
@@ -123,19 +125,25 @@ const buildLabelsY = (yAxisPrefix, labels, dataset, totalWidth, labelsColor, bar
     });
 };
 
-const AnimatedBar = ({ x, y, maxWidth, value, maxValue, fill, height }) => {
+const BAR_ANIMATION_DURATION = 400;
+const BAR_STAGGER_DELAY = 40;
+
+const AnimatedBar = ({ x, y, maxWidth, value, maxValue, fill, height, delay = 0 }) => {
     const width = useSharedValue(0);
 
     useEffect(() => {
-        width.value = withTiming((maxWidth * value) / maxValue, {
-            duration: 1000,
+        width.value = withDelay(delay, withTiming((maxWidth * value) / maxValue, {
+            duration: BAR_ANIMATION_DURATION,
             easing: Easing.out(Easing.cubic),
-        });
+        }));
     }, [maxWidth, value, maxValue]);
 
-    const animatedProps = useAnimatedProps(() => ({
-        width: width.value,
-    }));
+    const animatedProps = useAnimatedProps(() => {
+        'worklet';
+        return {
+            width: width.value,
+        };
+    });
 
     return (
         <AnimatedRect
@@ -148,7 +156,7 @@ const AnimatedBar = ({ x, y, maxWidth, value, maxValue, fill, height }) => {
     );
 };
 
-const buildBars = (dataset, maxBarWidth, barHeight, barContainerHeight, maxValueDataset) => {
+const buildBars = (dataset, maxBarWidth, barHeight, barContainerHeight, maxValueDataset, baseDelay = 0) => {
     if (!dataset || dataset.length === 0) return null;
 
     return dataset.map((value, index) => {
@@ -164,6 +172,7 @@ const buildBars = (dataset, maxBarWidth, barHeight, barContainerHeight, maxValue
                 maxValue={maxValueDataset}
                 fill="#75c2be"
                 height={barHeight}
+                delay={baseDelay + (index * BAR_STAGGER_DELAY)}
             />
         );
     });

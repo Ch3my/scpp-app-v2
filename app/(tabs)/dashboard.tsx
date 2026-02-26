@@ -33,6 +33,10 @@ const Dashboard = () => {
             end: ''
         }
     });
+    const [donutData, setDonutData] = useState<{ percentage: number; topGastos: any[] }>({
+        percentage: 0,
+        topGastos: []
+    });
 
     const cancelTokenSourceRef = useRef<CancelTokenSource | null>(null);
 
@@ -42,20 +46,41 @@ const Dashboard = () => {
         }
         cancelTokenSourceRef.current = axios.CancelToken.source();
 
+        const startTime = performance.now();
+        console.log('[Dashboard] API calls started');
+
         try {
-            const [monthlyGraphResponse, expensesByCategoryResponse] = await Promise.all([
+            const [monthlyGraphResponse, expensesByCategoryResponse, donutResponse] = await Promise.all([
                 apiClient.get<MonthlyGraphData>('/monthly-graph', {
                     params: { nMonths: 5 },
                     cancelToken: cancelTokenSourceRef.current.token
+                }).then(res => {
+                    console.log(`[Dashboard] /monthly-graph: ${(performance.now() - startTime).toFixed(0)}ms`);
+                    return res;
                 }),
                 apiClient.get<ExpensesByCategoryData>('/expenses-by-category', {
                     params: { nMonths: 12 },
                     cancelToken: cancelTokenSourceRef.current.token
+                }).then(res => {
+                    console.log(`[Dashboard] /expenses-by-category: ${(performance.now() - startTime).toFixed(0)}ms`);
+                    return res;
+                }),
+                apiClient.get<{ porcentajeUsado: number; topGastos: any[] }>('/curr-month-spending', {
+                    cancelToken: cancelTokenSourceRef.current.token
+                }).then(res => {
+                    console.log(`[Dashboard] /curr-month-spending: ${(performance.now() - startTime).toFixed(0)}ms`);
+                    return res;
                 })
             ]);
 
+            console.log(`[Dashboard] All APIs done: ${(performance.now() - startTime).toFixed(0)}ms`);
             setMonthlyGraphData(monthlyGraphResponse.data);
             setBarChartData(expensesByCategoryResponse.data);
+            setDonutData({
+                percentage: donutResponse.data.porcentajeUsado,
+                topGastos: donutResponse.data.topGastos?.slice(0, 5) || []
+            });
+            console.log(`[Dashboard] State updated: ${(performance.now() - startTime).toFixed(0)}ms`);
         } catch (error) {
             if (axios.isCancel(error)) {
                 console.log('Request canceled:', error.message);
@@ -104,9 +129,10 @@ const Dashboard = () => {
                 labels={monthlyGraphData.labels}
                 labelsColor={theme.colors.onBackground}
                 yAxisPrefix='$ '
+                animationDelay={0}
             />
             <View style={{ marginTop: 10, marginBottom: 20 }}>
-                <DashboardDonut shouldRefresh={refreshing} />
+                <DashboardDonut percentage={donutData.percentage} topGastos={donutData.topGastos} animationDelay={150} />
             </View>
             <View style={{ marginBottom: 30 }}>
                 <Text style={appStyles.titleLarge}>Resumen Categoría</Text>
@@ -123,6 +149,7 @@ const Dashboard = () => {
                     labels={barChartData.labels}
                     labelsColor={theme.colors.onBackground}
                     yAxisPrefix='$ '
+                    animationDelay={300}
                 />
             </View>
         </ScrollView>
