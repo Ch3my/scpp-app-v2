@@ -4,7 +4,7 @@ import {
     SafeAreaView
 } from 'react-native';
 import { Stack, router } from "expo-router";
-import { useEffect, useState, useContext } from 'react';
+import { useState } from 'react';
 import { GetAppStyles } from "../../../styles/styles"
 import { useTheme } from '../../ScppThemeContext';
 import { AppIconButton } from '../../../components/ui/AppIconButton';
@@ -12,17 +12,19 @@ import { AppButton } from '../../../components/ui/AppButton';
 import { AppTextInput } from '../../../components/ui/AppTextInput';
 import { AppDialog } from '../../../components/ui/AppDialog';
 import { DateTime } from "luxon";
-import { AxiosResponse } from 'axios'
-import apiClient from '../../../api/axiosClient'
-import { ScppContext } from "../../ScppContext"
 import { useLocalSearchParams } from 'expo-router';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue } from "react-native-reanimated"
+import { useAsset, useDeleteAsset } from '../../../api/hooks';
 
 export default () => {
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
-    const { } = useContext(ScppContext);
+    const { id } = useLocalSearchParams();
+    const assetId = Number(id);
+
+    const { data: asset } = useAsset(assetId);
+    const deleteAssetMutation = useDeleteAsset();
 
     const scale = useSharedValue(1);
     const savedScale = useSharedValue(1);
@@ -35,43 +37,22 @@ export default () => {
     const [showImgModal, setShowImgModal] = useState<boolean>(false);
     const [showConfirmDelete, setShowConfirmDelete] = useState<boolean>(false)
 
-    let [assetDescription, setAssetDescription] = useState<string>("")
-    let [assetDate, setAssetDate] = useState<DateTime>(DateTime.local())
-    let [assetCatName, setAssetCatName] = useState<string>("")
-    let [assetAssetData, setAssetAssetData] = useState<string>("")
-
-    const { id } = useLocalSearchParams();
-
-    useEffect(() => {
-        const getData = async () => {
-            try {
-                const response: AxiosResponse<any> = await apiClient.get('/assets', {
-                    params: {
-                        id: [id]
-                    }
-                });
-                if (response.data) {
-                    let asset = response.data[0]
-                    setAssetDescription(asset.descripcion)
-                    setAssetCatName(asset.categoria.descripcion)
-                    setAssetAssetData(asset.assetData)
-                    setAssetDate(DateTime.fromFormat(asset.fecha, "yyyy-MM-dd"))
-                }
-            } catch (error) {
-                console.log(error);
-            }
-        }
-        getData()
-    }, [])
+    const assetDescription = asset?.descripcion ?? "";
+    const assetDate = asset?.fecha ? DateTime.fromFormat(asset.fecha, "yyyy-MM-dd") : DateTime.local();
+    const assetCatName = (asset as any)?.categoria?.descripcion ?? "";
+    const assetAssetData = asset?.assetData ?? "";
 
     const deleteAsset = async () => {
-        try {
-            await apiClient.delete('/assets', { data: { id } })
-            router.back()
-        } catch (error) {
-            console.log(error)
-        }
+        deleteAssetMutation.mutate(assetId, {
+            onSuccess: () => {
+                router.back()
+            },
+            onError: (error) => {
+                console.log(error)
+            }
+        });
     }
+
     const closeImgModal = () => {
         setShowImgModal(!showImgModal)
         scale.value = 1
@@ -137,7 +118,7 @@ export default () => {
                     dense={true}
                     value={assetDescription}
                     autoCapitalize="none"
-                    onChangeText={text => setAssetDescription(text)} />
+                />
                 <AppTextInput
                     style={{ marginBottom: 5 }}
                     label="Fecha"

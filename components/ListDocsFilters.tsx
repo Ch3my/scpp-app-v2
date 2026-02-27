@@ -1,10 +1,7 @@
-import { useEffect, useState, useContext, useCallback, useRef, useMemo } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { DateTime } from "luxon";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { View, StyleSheet, Text } from 'react-native';
-import { AxiosResponse } from 'axios';
-import apiClient from '../api/axiosClient';
-import { ScppContext } from "../app/ScppContext"
 import { Picker } from '@react-native-picker/picker';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
 import { Categoria } from '../models/Categoria';
@@ -14,6 +11,7 @@ import { AppCheckbox } from './ui/AppCheckbox';
 import { AppButton } from './ui/AppButton';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { GetAppStyles } from '../styles/styles';
+import { useCategorias } from '../api/hooks';
 
 interface FiltersModalProps {
     visible: boolean;
@@ -25,10 +23,10 @@ interface FiltersModalProps {
         fechaTermino: DateTime | null;
         searchPhraseIgnoreOtherFilters: boolean;
     }) => void;
-    initialSearchPhrase?: string; // Made optional as per initial value
+    initialSearchPhrase?: string;
     initialCategoriaFilterName: string;
-    initialFechaInicio?: DateTime | null; // Made optional
-    initialFechaTermino?: DateTime | null; // Made optional
+    initialFechaInicio?: DateTime | null;
+    initialFechaTermino?: DateTime | null;
 }
 
 export default ({
@@ -41,13 +39,16 @@ export default ({
 }: FiltersModalProps) => {
     const theme = useTheme();
     const appStyles = GetAppStyles(theme);
-    const { } = useContext(ScppContext);
 
     const bottomSheetRef = useRef<BottomSheet>(null);
-
-    // snapPoints for the BottomSheet. You can adjust these values as needed.
-    // '25%' means 25% of the screen height, '50%' means 50%, etc.
     const snapPoints = useMemo(() => ['60%'], []);
+
+    const { data: categorias = [] } = useCategorias();
+
+    const listOfCategoria: Categoria[] = useMemo(() => [
+        { id: -1, descripcion: "(Todos)" },
+        ...categorias
+    ], [categorias]);
 
     const [searchPhrase, setSearchPhrase] = useState<string | undefined>(initialSearchPhrase)
     const [fechaInicio, setFechaInicio] = useState<DateTime | null>(initialFechaInicio)
@@ -55,32 +56,11 @@ export default ({
     const [showFechaInicioPicker, setShowFechaInicioPicker] = useState<boolean>(false)
     const [showFechaTerminoPicker, setShowFechaTerminoPicker] = useState<boolean>(false)
     const [categoriaFilterId, setCategoriaFilterId] = useState<number | null>(null)
-    const [listOfCategoria, setListOfCategoria] = useState<Categoria[]>([])
     const [searchPhraseIgnoreOtherFilters, setSearchPhraseIgnoreOtherFilters] = useState(true);
 
     useEffect(() => {
-        const getCategorias = async () => {
-            try {
-                const response: AxiosResponse<any> = await apiClient.get('/categorias');
-                if (response.data) {
-                    // Add the item to the top of the array
-                    const modifiedData = [
-                        { id: -1, descripcion: "(Todos)" },
-                        ...response.data
-                    ];
-                    setListOfCategoria(modifiedData)
-                }
-            } catch (error) {
-                console.log(error);
-            }
-        }
-
-        getCategorias()
-    }, [])
-
-    useEffect(() => {
         if (visible) {
-            bottomSheetRef.current?.snapToIndex(0); // or .snapToIndex(0) to go to the first snap point
+            bottomSheetRef.current?.snapToIndex(0);
         } else {
             bottomSheetRef.current?.close();
         }
@@ -115,7 +95,6 @@ export default ({
         onDismiss()
     };
 
-    // Callback to handle sheet changes, effectively dismissing the modal when it's closed
     const handleSheetChanges = useCallback((index: number) => {
         if (index === -1) {
             onDismiss();
@@ -133,11 +112,11 @@ export default ({
     return (
         <BottomSheet
             ref={bottomSheetRef}
-            index={-1} // -1 means hidden
+            index={-1}
             backdropComponent={renderBackDrop}
             snapPoints={snapPoints}
-            enablePanDownToClose={true} // Allows closing by swiping down
-            onClose={onDismiss} // Callback when the sheet is closed via pan down or programmatically
+            enablePanDownToClose={true}
+            onClose={onDismiss}
             onChange={handleSheetChanges}
             backgroundStyle={{ backgroundColor: theme.colors.surface, borderColor: theme.colors.secondary, borderWidth: 1 }}
             handleIndicatorStyle={{ backgroundColor: theme.colors.onSurface }}

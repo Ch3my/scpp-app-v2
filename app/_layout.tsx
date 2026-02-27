@@ -1,6 +1,8 @@
 import { Stack } from "expo-router";
 import { useContext, useMemo, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "../api/queryClient";
 import { ScppThemeProvider, ScppThemeContext } from "./ScppThemeContext";
 import { ScppProvider } from "./ScppContext";
 import { ThemeProvider } from "@react-navigation/native";
@@ -39,13 +41,15 @@ const StackLayout: React.FC = () => {
 // App component to wrap providers and optimize context rendering
 const App: React.FC = () => {
     return (
-        <SafeAreaProvider>
-            <ScppProvider>
-                <ScppThemeProvider>
-                    <StackLayout />
-                </ScppThemeProvider>
-            </ScppProvider>
-        </SafeAreaProvider>
+        <QueryClientProvider client={queryClient}>
+            <SafeAreaProvider>
+                <ScppProvider>
+                    <ScppThemeProvider>
+                        <StackLayout />
+                    </ScppThemeProvider>
+                </ScppProvider>
+            </SafeAreaProvider>
+        </QueryClientProvider>
     );
 };
 

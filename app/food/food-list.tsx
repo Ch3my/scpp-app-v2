@@ -1,47 +1,19 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { FlatList, View, Text } from 'react-native';
 import { useTheme } from '../ScppThemeContext';
 import { Stack } from "expo-router";
-import { ScppContext } from "../ScppContext"
-import apiClient from '../../api/axiosClient';
-import { DateTime } from 'luxon';
 import { GetAppStyles } from "../../styles/styles"
+import { useFoodItems, FoodItem } from '../../api/hooks';
 
 const FoodList: React.FC = () => {
-    const { } = useContext(ScppContext);
-    const [foodItems, setFoodItems] = useState([]);
-    const [apiCalling, setApiCalling] = useState<boolean>(true)
     const theme = useTheme();
     const appStyles = useMemo(() => GetAppStyles(theme), [theme]);
-    
-    const getData = async () => {
-        let response: any = {}
-        try {
-            response = await apiClient.get('/food/item-quantity')
-        } catch (error) {
-            console.log(error)
-            return
-        }
-        if (response.status != 200) {
-            console.log("Error al cargar la lista de alimentos")
-            return
-        }
+    const { data: foodItems = [], isLoading, refetch } = useFoodItems();
 
-        let processedItems = response.data.map((item: any) => ({
-            id: item.id,
-            name: item.name,
-            unit: item.unit,
-            quantity: item.quantity,
-            lastTransactionAt: item.last_transaction_at ? DateTime.fromISO(item.last_transaction_at) : null
-        }));
-        setFoodItems(processedItems)
-        setApiCalling(false)
-    }
-
-    const renderItem = ({ item }: any) => {
+    const renderItem = ({ item }: { item: FoodItem }) => {
         const formattedDate = item.lastTransactionAt
-        ? item.lastTransactionAt.toFormat("dd-MM-yyyy")
-        : '';
+            ? item.lastTransactionAt.toFormat("dd-MM-yyyy")
+            : '';
         return (
             <View
                 style={{
@@ -83,19 +55,15 @@ const FoodList: React.FC = () => {
         )
     }
 
-    useEffect(() => {
-        getData()
-    }, [])
-
     return (
         <View>
             <Stack.Screen options={{ headerTitle: "Lista Food Storage" }} />
             <FlatList
                 data={foodItems}
                 ListHeaderComponent={tableHead}
-                refreshing={apiCalling}
-                onRefresh={getData}
-                keyExtractor={(item, index) => index.toString()}
+                refreshing={isLoading}
+                onRefresh={refetch}
+                keyExtractor={(item) => item.id.toString()}
                 renderItem={renderItem}
             />
         </View>

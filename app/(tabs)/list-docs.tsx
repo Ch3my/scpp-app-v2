@@ -1,11 +1,8 @@
-import { View, Modal, FlatList, Pressable, TouchableOpacity, Text } from "react-native"
+import { View, Modal, FlatList, TouchableOpacity, Text } from "react-native"
 import { Link, Stack, router } from "expo-router";
 import { useTheme } from '../ScppThemeContext';
 import { GetAppStyles } from "../../styles/styles"
-import { useEffect, useState, useContext, useCallback } from 'react';
-import axios, { AxiosResponse } from 'axios'
-import apiClient from '../../api/axiosClient'
-import { ScppContext } from "../ScppContext"
+import { useState, useCallback, useMemo } from 'react';
 import { DateTime } from "luxon";
 import numeral from "numeral"
 import "numeral/locales/es-es";
@@ -18,20 +15,17 @@ import DocHeader from "../../components/DocHeader";
 import { Documento } from "../../models/Documento";
 import { AppIconButton } from "../../components/ui/AppIconButton";
 import { AppTextInput } from "../../components/ui/AppTextInput";
+import { useDocumentos, useDeleteDocumento, useTipoDocumentos } from "../../api/hooks";
+import { DocumentFilters } from "../../api/queryKeys";
 
 export default () => {
     numeral.locale("es-es")
 
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
-    const { refetchDocs, setRefetchdocs, tipoDocumentos } = useContext(ScppContext);
-    const [docsList, setDocsList] = useState<Documento[]>([])
 
     const [fechaInicio, setFechaInicio] = useState<DateTime | null>(DateTime.local().startOf("month"))
     const [fechaTermino, setFechaTermino] = useState<DateTime | null>(DateTime.local().endOf("month"))
-    const [sumaTotalDocs, setSumaTotalDocs] = useState<number>(0)
-
-    const [getDocsApiCalling, setGetDocsApiCalling] = useState<boolean>(true)
 
     const [tipoDocFilterId, setTipoDocFilterId] = useState<number>(1)
     const [categoriaFilterId, setCategoriaFilterId] = useState<number | null>(null)
@@ -42,88 +36,26 @@ export default () => {
     const [searchPhrase, setSearchPhrase] = useState<string | undefined>(undefined)
 
     const [showTipoDocFilter, setShowTipoDocFilter] = useState<boolean>(false)
-    const [layoutReady, setLayoutReady] = useState(false);
     const [searchPhraseIgnoreOtherFilters, setSearchPhraseIgnoreOtherFilters] = useState(true);
 
-    const getData = useCallback(async (aFechaInicio: DateTime | null,
-        aFechaTermino: DateTime | null,
-        afk_tipoDoc: number | null,
-        afk_categoria: number | null,
-        aSearchPhrase: string | undefined,
-        aSearchPhraseIgnoreOtherFilters: boolean) => {
-        // Si vienen argumentos usamos argumentos, sino usamos el estado
-        // como se hace queue de los setState el argumento (si existe) esta mas actualizado el que State
-        setGetDocsApiCalling(true)
+    const { data: tipoDocumentos = [] } = useTipoDocumentos();
 
-        let localFechaInicio = fechaInicio
-        if (aFechaInicio) {
-            localFechaInicio = aFechaInicio
-        }
-        let localFechaTermino = fechaTermino
-        if (aFechaTermino) {
-            localFechaTermino = aFechaTermino
-        }
-        let localTipoDocId = tipoDocFilterId
-        if (afk_tipoDoc) {
-            localTipoDocId = afk_tipoDoc
-        }
-        // -1 something i created because picker coulnd not handle null aparently
-        let localCategoriaId = categoriaFilterId
-        if (afk_categoria) {
-            localCategoriaId = afk_categoria
-        }
-        if (localCategoriaId == -1) {
-            localCategoriaId = null
-        }
-        let localSearchPhraseIgnoreOtherFilters = searchPhraseIgnoreOtherFilters
-        if (aSearchPhraseIgnoreOtherFilters) {
-            localSearchPhraseIgnoreOtherFilters = aSearchPhraseIgnoreOtherFilters
-        }
-        try {
-            const response: AxiosResponse<any> = await apiClient.get('/documentos', {
-                params: {
-                    fechaInicio: localFechaInicio?.toFormat('yyyy-MM-dd'),
-                    fechaTermino: localFechaTermino?.toFormat('yyyy-MM-dd'),
-                    fk_tipoDoc: localTipoDocId,
-                    fk_categoria: localCategoriaId,
-                    searchPhrase: aSearchPhrase,
-                    searchPhraseIgnoreOtherFilters: aSearchPhraseIgnoreOtherFilters,
-                },
-            });
-            if (response.data) {
-                setDocsList(response.data)
-                const suma = response.data.reduce((acc: number, doc: Documento) => acc + doc.monto, 0);
-                setSumaTotalDocs(suma);
-            }
-        } catch (error) {
-            if (axios.isCancel(error)) {
-                console.log("Request canceled:", error.message);
-            } else {
-                console.error("Error fetching data:", error);
-            }
-        } finally {
-            setGetDocsApiCalling(false)
-        }
-    }, [
-        fechaInicio,
-        fechaTermino,
-        tipoDocFilterId,
-        categoriaFilterId,
+    const filters: DocumentFilters = useMemo(() => ({
+        fechaInicio: fechaInicio?.toFormat('yyyy-MM-dd'),
+        fechaTermino: fechaTermino?.toFormat('yyyy-MM-dd'),
+        fk_tipoDoc: tipoDocFilterId,
+        fk_categoria: categoriaFilterId,
         searchPhrase,
-    ]);
+        searchPhraseIgnoreOtherFilters,
+    }), [fechaInicio, fechaTermino, tipoDocFilterId, categoriaFilterId, searchPhrase, searchPhraseIgnoreOtherFilters]);
 
-    useEffect(() => {
-        if (layoutReady) {
-            getData(null, null, null, null, searchPhrase, false);
-        }
-    }, [layoutReady]);
+    const { data: docsList = [], isLoading, refetch } = useDocumentos(filters);
+    const deleteDocumentoMutation = useDeleteDocumento(filters);
 
-    useEffect(() => {
-        if (refetchDocs == true) {
-            getData(null, null, null, null, searchPhrase, false)
-            setRefetchdocs(false)
-        }
-    }, [refetchDocs])
+    const sumaTotalDocs = useMemo(() =>
+        docsList.reduce((acc: number, doc: Documento) => acc + doc.monto, 0),
+        [docsList]
+    );
 
     const setFechaToTipoDoc = (fk_tipoDoc: number | null) => {
         const currentDate = DateTime.local()
@@ -132,7 +64,6 @@ export default () => {
         if (fk_tipoDoc == 1) {
             newFecIni = currentDate.startOf('month')
             newFecTer = currentDate.endOf('month')
-            // Gastos
             setFechaInicio(newFecIni)
             setFechaTermino(newFecTer)
             return [newFecIni, newFecTer]
@@ -143,11 +74,10 @@ export default () => {
     }
 
     const onUpdateTipoDoc = async ({ id, descripcion }: { id: number, descripcion: string }) => {
-        let [newFecIni, newFecTer] = setFechaToTipoDoc(id)
+        setFechaToTipoDoc(id)
         setTipoDocFilterId(id)
         setTipoDocFilterName(descripcion)
         setShowTipoDocFilter(false)
-        getData(newFecIni, newFecTer, id, null, searchPhrase, false)
     }
 
     const onFilterUpdate = ({
@@ -168,8 +98,6 @@ export default () => {
         setFechaTermino(fechaTermino)
         setCategoriaFilterId(categoriaFilterId)
         setSearchPhraseIgnoreOtherFilters(searchPhraseIgnoreOtherFilters)
-        // NOTA este searchPhrase es el local de la funcion, no el estado
-        getData(fechaInicio, fechaTermino, null, categoriaFilterId, searchPhrase, searchPhraseIgnoreOtherFilters)
     }
 
     const rightSwipe = useCallback((progress: any, dragX: any, id: number) => {
@@ -177,7 +105,7 @@ export default () => {
             const translateX = interpolate(
                 progress.value,
                 [0, 1],
-                [100, 0], // Move the whole 100px block
+                [100, 0],
                 Extrapolation.CLAMP
             );
             return {
@@ -191,14 +119,7 @@ export default () => {
             router.push("/docs/edit/" + id)
         }
         const deleteDoc = async () => {
-            setDocsList(prevDocs => prevDocs.filter(doc => doc.id !== id))
-            // TODO. Update suma Total o lo hace getData luego
-            try {
-                await apiClient.delete('/documentos', { data: { id } })
-                getData(null, null, null, null, searchPhrase, false)
-            } catch (error) {
-                console.log(error)
-            }
+            deleteDocumentoMutation.mutate(id);
         }
 
         return (
@@ -219,15 +140,15 @@ export default () => {
                 </View>
             </Reanimated.View>
         );
-    }, []);
+    }, [deleteDocumentoMutation, theme.colors]);
 
     const renderItem = useCallback(
         ({ item }: { item: Documento }) => (
             <DocRow item={item} rightSwipe={rightSwipe} />
-        ), []);
+        ), [rightSwipe]);
 
     return (
-        <View style={{ flex: 1, backgroundColor: theme.colors.background }} onLayout={() => setLayoutReady(true)}>
+        <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
             <Stack.Screen options={{ headerTitle: "Documentos" }} />
             <View style={{ justifyContent: "space-between", alignItems: "center", flexDirection: "row", backgroundColor: theme.colors.background, paddingHorizontal: 7 }}>
                 <View style={appStyles.btnRow}>
@@ -265,8 +186,8 @@ export default () => {
             </View>
             <Animated.FlatList
                 data={docsList}
-                onRefresh={() => { getData(null, null, null, null, searchPhrase, false) }}
-                refreshing={getDocsApiCalling}
+                onRefresh={() => { refetch() }}
+                refreshing={isLoading}
                 stickyHeaderIndices={[0]}
                 ListHeaderComponent={<DocHeader />}
                 keyExtractor={(item) => item.id.toString()}

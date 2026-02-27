@@ -1,10 +1,10 @@
 import {
-    View, ScrollView, Image, FlatList,
+    View, ScrollView, Image,
     Modal, Text, TouchableOpacity,
     SafeAreaView
 } from 'react-native';
 import { Stack } from "expo-router";
-import { useEffect, useState, useRef, useContext, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { Camera, CameraType, CameraView } from 'expo-camera';
 import { GetAppStyles } from "../../styles/styles"
 import { useTheme } from '../ScppThemeContext';
@@ -15,16 +15,16 @@ import { AppDialog } from '../../components/ui/AppDialog';
 import { toast } from 'sonner-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { DateTime } from "luxon";
-import apiClient from '../../api/axiosClient'
-import { ScppContext } from "../ScppContext"
 import { ConvertToBase64 } from "../../helpers/base64-file-enconder"
 import { CompressAndResizeImage } from "../../helpers/img-compressor"
 import React from 'react';
+import { useCategorias, useCreateAsset } from '../../api/hooks';
 
 export default () => {
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
-    const { categorias } = useContext(ScppContext);
+    const { data: categorias = [] } = useCategorias();
+    const createAssetMutation = useCreateAsset();
 
     const [cameraPermission, setCameraPermission] = useState<string | null>(null);
     const [type, setType] = useState<CameraType>("back");
@@ -92,18 +92,20 @@ export default () => {
         }
         let compressImgUri = await CompressAndResizeImage(photoLocation, rotation)
         let encondedFile = await ConvertToBase64(compressImgUri)
-        let apiArgs = {
+
+        createAssetMutation.mutate({
             fk_categoria: assetCatId,
             descripcion: assetDescription,
             assetData: encondedFile.base64String,
             fecha: DateTime.fromJSDate(assetDate).toFormat('yyyy-MM-dd'),
-        }
-        let response = await apiClient.post('/assets', apiArgs)
-        if (response.data.hasErrors) {
-            toast.error("Error al guardar Asset")
-            return
-        }
-        toast.success("Asset guardado con Exito")
+        }, {
+            onSuccess: () => {
+                toast.success("Asset guardado con Exito")
+            },
+            onError: () => {
+                toast.error("Error al guardar Asset")
+            }
+        });
     }
 
     const cameraReady = useCallback(() => {

@@ -1,33 +1,32 @@
 import {
-    StyleSheet, View, ScrollView, FlatList, Text, TouchableOpacity
+    View, ScrollView, FlatList, Text, TouchableOpacity
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Stack } from "expo-router";
-import { useState, useContext, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { GetAppStyles } from "../../styles/styles"
 import { useTheme } from '../ScppThemeContext';
 import { AppIconButton } from '../../components/ui/AppIconButton';
-import { AppButton } from '../../components/ui/AppButton';
 import { AppTextInput } from '../../components/ui/AppTextInput';
 import { AppDialog } from '../../components/ui/AppDialog';
 import { toast } from 'sonner-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { DateTime } from "luxon";
-import apiClient from '../../api/axiosClient'
-import { ScppContext } from "../ScppContext"
 import MaskInput, { createNumberMask } from 'react-native-mask-input';
-import { TextInput as RNTextInput } from 'react-native';
+import { useCategorias, useTipoDocumentos, useCreateDocumento } from '../../api/hooks';
 
 export default () => {
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
-    const { setRefetchdocs, tipoDocumentos, categorias } = useContext(ScppContext);
+
+    const { data: categorias = [] } = useCategorias();
+    const { data: tipoDocumentos = [] } = useTipoDocumentos();
+    const createDocumentoMutation = useCreateDocumento();
 
     const [showDocDatePicker, setShowDocDatePicker] = useState<boolean>(false)
     const [showCategoriaInput, setShowCategoriaInput] = useState<boolean>(true)
     const [showCategoriaList, setShowCategoriaList] = useState<boolean>(false)
     const [showTipoDocList, setShowTipoDocList] = useState<boolean>(false)
-    const [apiCalling, setApiCalling] = useState<boolean>(false)
 
     const [negativeMonto, setNegativeMonto] = useState<boolean>(false)
 
@@ -61,21 +60,18 @@ export default () => {
             setShowCategoriaInput(true)
         }
     }, [])
+
     const saveDoc = async () => {
-        setApiCalling(true)
         if (docTipoDocId == 1 && docCatId == 0) {
             toast.error("Selecciona la categoria")
-            setApiCalling(false)
             return
         }
         if (docProposito == "") {
             toast.error("Ingresa Proposito")
-            setApiCalling(false)
             return
         }
         if (docTipoDocId == 1 && docMonto == 0) {
             toast.error("Ingresa el Monto")
-            setApiCalling(false)
             return
         }
 
@@ -84,31 +80,20 @@ export default () => {
             computedMonto *= -1
         }
 
-        let apiArgs: {
-            fk_categoria: number | null;
-            proposito: string;
-            fecha: string;
-            monto: number;
-            fk_tipoDoc: number;
-        } = {
-            fk_categoria: null,
+        createDocumentoMutation.mutate({
+            fk_categoria: docTipoDocId == 1 ? docCatId : null,
             proposito: docProposito,
             fecha: DateTime.fromJSDate(docDate).toFormat('yyyy-MM-dd'),
             monto: computedMonto,
             fk_tipoDoc: docTipoDocId,
-        }
-        if (docTipoDocId == 1) {
-            apiArgs.fk_categoria = docCatId
-        }
-        let response = await apiClient.post('/documentos', apiArgs)
-        if (response.data.hasErrors) {
-            toast.error("Error al guardar documento")
-            setApiCalling(false)
-            return
-        }
-        toast.success("Documento guardado con Exito")
-        setRefetchdocs(true)
-        setApiCalling(false)
+        }, {
+            onSuccess: () => {
+                toast.success("Documento guardado con Exito")
+            },
+            onError: () => {
+                toast.error("Error al guardar documento")
+            }
+        });
     }
 
     const dollarMask = createNumberMask({
@@ -156,7 +141,7 @@ export default () => {
                     iconColor={theme.colors.onPrimary}
                     size={30}
                     onPress={saveDoc}
-                    disabled={apiCalling}
+                    disabled={createDocumentoMutation.isPending}
                 />
             </View>
             <View style={appStyles.container}>

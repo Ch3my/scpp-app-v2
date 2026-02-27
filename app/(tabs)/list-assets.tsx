@@ -1,11 +1,8 @@
-import { ScrollView, View, InteractionManager, Text } from "react-native"
-import { Link, useNavigation, Stack, router, useFocusEffect } from "expo-router";
+import { ScrollView, View, Text } from "react-native"
+import { Link, Stack, router } from "expo-router";
 import { useTheme } from '../ScppThemeContext';
 import { GetAppStyles } from "../../styles/styles"
-import { useEffect, useState, useCallback, useContext } from 'react';
-import { AxiosResponse } from 'axios'
-import apiClient from '../../api/axiosClient'
-import { ScppContext } from "../ScppContext"
+import { useState } from 'react';
 
 import Reanimated, { Extrapolation, interpolate, useAnimatedStyle } from "react-native-reanimated";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
@@ -13,54 +10,29 @@ import { Asset } from "../../models/Asset";
 import { AppIconButton } from "../../components/ui/AppIconButton";
 import { AppDialog } from "../../components/ui/AppDialog";
 import { AppButton } from "../../components/ui/AppButton";
+import { useAssets, useDeleteAsset } from "../../api/hooks";
 
 export default () => {
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
-    const { } = useContext(ScppContext);
-    const [assetList, setAssetList] = useState<Asset[]>([])
 
-    const [getAssetsApiCalling, setGetAssetsApiCalling] = useState<boolean>(true)
     const [showConfirmDelete, setShowConfirmDelete] = useState<boolean>(false)
     const [selectedId, setSelectedId] = useState<number>(0)
 
-    const getData = async () => {
-        setGetAssetsApiCalling(true)
-        try {
-            const response: AxiosResponse<any> = await apiClient.get('/assets');
-            if (response.data) {
-                setAssetList(response.data)
-            }
-        } catch (error) {
-            console.log(error);
-        }
-        setGetAssetsApiCalling(false)
-    }
-    const deleteAsset = async () => {
-        try {
-            await apiClient.delete('/assets', { data: { id: selectedId } })
-            getData()
-        } catch (error) {
-            console.log(error)
-        }
-        setSelectedId(0)
-    }
+    const { data: assetList = [], isLoading, refetch } = useAssets();
+    const deleteAssetMutation = useDeleteAsset();
 
-    useFocusEffect(
-        useCallback(() => {
-            const task = InteractionManager.runAfterInteractions(() => {
-                getData()
-            })
-            return () => task.cancel();
-        }, [])
-    );
+    const deleteAsset = async () => {
+        deleteAssetMutation.mutate(selectedId);
+        setSelectedId(0);
+    }
 
     const rightSwipe = (progress: any, dragX: any, id: number) => {
         const containerStyle = useAnimatedStyle(() => {
             const translateX = interpolate(
                 progress.value,
                 [0, 1],
-                [100, 0], // Move the whole 100px block
+                [100, 0],
                 Extrapolation.CLAMP
             );
             return {
@@ -132,11 +104,10 @@ export default () => {
                     mode="contained-tonal"
                     containerColor={theme.colors.primary}
                     iconColor={theme.colors.onPrimary}
-                    onPress={() => { getData() }}
+                    onPress={() => { refetch() }}
                 />
             </View>
             <ScrollView style={appStyles.container}>
-                {/* DataTable Header */}
                 <View style={{
                     flexDirection: 'row',
                     backgroundColor: theme.colors.surfaceVariant,
@@ -148,13 +119,13 @@ export default () => {
                     <Text style={[appStyles.textFontSize, { flex: 1, fontWeight: '500' }]}>Descripcion</Text>
                 </View>
 
-                {getAssetsApiCalling && (
+                {isLoading && (
                     <View style={{ padding: 16, alignItems: 'center' }}>
                         <Text style={appStyles.textFontSize}>Cargando...</Text>
                     </View>
                 )}
 
-                {!getAssetsApiCalling && assetList.map((item) => (
+                {!isLoading && assetList.map((item: Asset) => (
                     <ReanimatedSwipeable
                         renderRightActions={(progress, dragX) => rightSwipe(progress, dragX, item.id)}
                         key={item.id}
@@ -172,7 +143,7 @@ export default () => {
                     </ReanimatedSwipeable>
                 ))}
 
-                {(assetList.length == 0 && !getAssetsApiCalling) && (
+                {(assetList.length == 0 && !isLoading) && (
                     <View style={{ padding: 16, alignItems: 'center' }}>
                         <Text style={appStyles.textFontSize}>No hay Datos</Text>
                     </View>

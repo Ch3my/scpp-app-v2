@@ -1,67 +1,49 @@
-import { useEffect, useState, useContext } from "react";
-import { useRouter } from "expo-router"; // Programmatic navigation
+import { useEffect, useContext } from "react";
+import { useRouter } from "expo-router";
 import { ScppContext } from "./ScppContext";
 import { Stack } from "expo-router";
 import { View, Image } from "react-native";
 import { useTheme } from "./ScppThemeContext";
 import { GetAppStyles } from "../styles/styles";
-import apiClient from "../api/axiosClient";
+import { useCheckSession } from "../api/hooks";
 
 const StartPage = () => {
-    const [isRedirecting, setIsRedirecting] = useState(false); // Track redirection state
-    const { sessionHash, isReady, fetchAyudas } = useContext(ScppContext);
-    const router = useRouter(); // For programmatic navigation
+    const { sessionHash, isReady } = useContext(ScppContext);
+    const router = useRouter();
     const theme = useTheme();
     const appStyles = GetAppStyles(theme);
 
-    // Check if the user is logged in
+    const { data: sessionData, isLoading, isError } = useCheckSession(isReady && !!sessionHash);
+
     useEffect(() => {
-        if (!isReady) return; // Wait until the app is ready
+        if (!isReady) return;
 
-        const checkLoggedIn = async () => {
-            if (!sessionHash) {
-                router.replace("/entrance/login"); // Navigate programmatically
-                return;
-            }
+        if (!sessionHash) {
+            router.replace("/entrance/login");
+            return;
+        }
 
-            try {
-                const response = await apiClient.get('/check-session');
+        if (isLoading) return;
 
-                if (response.data.success) {
-                    fetchAyudas();
-                    router.replace("/list-docs"); // Navigate to the target page
-                } else {
-                    router.replace("/entrance/login"); // Navigate to login if session is invalid
-                }
-            } catch (error) {
-                console.error("Error checking login:", error);
-                router.replace("/entrance/login"); // Navigate to login on error
-            } finally {
-                setIsRedirecting(false); // Ensure redirection state is cleared
-            }
-        };
+        if (isError || !sessionData?.success) {
+            router.replace("/entrance/login");
+        } else {
+            router.replace("/list-docs");
+        }
+    }, [isReady, sessionHash, isLoading, isError, sessionData]);
 
-        setIsRedirecting(true); // Indicate redirection is starting
-        checkLoggedIn();
-    }, [isReady])
-
-    // Show splash screen while determining redirection or navigating
-    if (!isReady || isRedirecting) {
-        return (
-            <View style={appStyles.container}>
-                <Stack.Screen options={{ headerShown: false }} />
-                <View style={[appStyles.centerContentContainer, { flex: 1 }]}>
-                    <Image
-                        source={require("../assets/images/splash.png")}
-                        style={{ width: 350 }}
-                        resizeMode="center"
-                    />
-                </View>
+    return (
+        <View style={appStyles.container}>
+            <Stack.Screen options={{ headerShown: false }} />
+            <View style={[appStyles.centerContentContainer, { flex: 1 }]}>
+                <Image
+                    source={require("../assets/images/splash.png")}
+                    style={{ width: 350 }}
+                    resizeMode="center"
+                />
             </View>
-        );
-    }
-
-    return null; // Avoid rendering anything else since navigation is handled programmatically
+        </View>
+    );
 };
 
 export default StartPage;

@@ -1,17 +1,18 @@
 import { View, KeyboardAvoidingView, StyleSheet, Image } from 'react-native'
 import { useState, useContext } from 'react'
-import apiClient from '../../api/axiosClient'
 import { ScppContext } from "../ScppContext"
 import { router, Stack } from 'expo-router';
 import { AppButton } from '../../components/ui/AppButton';
 import { AppTextInput } from '../../components/ui/AppTextInput';
 import { useTheme } from '../ScppThemeContext';
+import { useLogin } from '../../api/hooks';
 
 export default () => {
     const { updateSessionHash } = useContext(ScppContext);
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
     const theme = useTheme();
+    const loginMutation = useLogin();
 
     const styles = StyleSheet.create({
         card: {
@@ -47,20 +48,19 @@ export default () => {
         }
     })
 
-    const login = async (username: string, password: string) => {
-        let response: any = {}
-        try {
-            response = await apiClient.post('/login', { username, password })
-        } catch (error) {
-            console.log(error)
-            return
-        }
-        if (response.status != 200) {
-            console.log("El usuario no esta autorizado")
-            return
-        }
-        await updateSessionHash(response.data.sessionHash)
-        router.replace('/dashboard');
+    const login = async () => {
+        loginMutation.mutate(
+            { username, password },
+            {
+                onSuccess: async (data) => {
+                    await updateSessionHash(data.sessionHash);
+                    router.replace('/dashboard');
+                },
+                onError: (error) => {
+                    console.log("Login error:", error);
+                },
+            }
+        );
     }
 
     return (
@@ -92,9 +92,10 @@ export default () => {
                     <AppButton
                         mode="contained"
                         style={styles.loginButton}
-                        onPress={async () => await login(username, password)}
+                        onPress={login}
+                        disabled={loginMutation.isPending}
                     >
-                        Ingresar
+                        {loginMutation.isPending ? 'Ingresando...' : 'Ingresar'}
                     </AppButton>
                 </View>
             </View>

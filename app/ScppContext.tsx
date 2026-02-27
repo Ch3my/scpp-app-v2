@@ -1,20 +1,12 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { GetData, StoreData } from "../helpers/async-storage-helper"
-import { AxiosResponse } from 'axios'
-import apiClient, { setSessionHash as setApiSessionHash } from '../api/axiosClient';
-import { Categoria } from '../models/Categoria';
-import { TipoDoc } from '../models/TipoDoc';
+import { setSessionHash as setApiSessionHash } from '../api/axiosClient';
 
 type ScppContextType = {
     sessionHash: string;
-    apiPrefix: string;
     updateSessionHash: (value: string) => void;
-    setRefetchdocs: (value: boolean) => void;
+    clearSession: () => Promise<void>;
     isReady: boolean;
-    refetchDocs: boolean,
-    categorias: Categoria[],
-    tipoDocumentos: TipoDoc[],
-    fetchAyudas: () => void
 };
 
 type ScppProviderProps = {
@@ -23,80 +15,44 @@ type ScppProviderProps = {
 
 export const ScppContext = createContext<ScppContextType>({
     sessionHash: "",
-    apiPrefix: "https://scpp.lezora.cl",
     updateSessionHash: () => { },
+    clearSession: async () => { },
     isReady: false,
-    refetchDocs: false,
-    setRefetchdocs: () => { },
-    categorias: [],
-    tipoDocumentos: [],
-    fetchAyudas: () => { }
 });
 
-export const ScppProvider: React.FC<ScppProviderProps> = ({
-    children,
-}) => {
+export const ScppProvider: React.FC<ScppProviderProps> = ({ children }) => {
     const [sessionHash, setSessionHash] = useState<string>("");
-    const [apiPrefix, setApiPrefix] = useState("https://scpp.lezora.cl");
     const [isReady, setIsReady] = useState(false);
-    const [refetchDocs, setRefetchdocs] = useState(false);
-    const [categorias, setCategorias] = useState([]);
-    const [tipoDocumentos, setTipoDocumentos] = useState([]);
 
-    // carga sesionhash si existe?
     useEffect(() => {
         const fetchData = async () => {
             const data = await GetData('sessionHash');
             if (data) {
                 setSessionHash(data);
-                setApiSessionHash(data); // Sync to axios client
+                setApiSessionHash(data);
             }
             setIsReady(true)
         };
         fetchData();
-    }, []); // Fetch data once when the component mounts
+    }, []);
 
     const updateSessionHash = async (value: string) => {
         setSessionHash(value)
-        setApiSessionHash(value); // Sync to axios client
+        setApiSessionHash(value);
         await StoreData("sessionHash", value)
     };
 
-    const fetchAyudas = async () => {
-        const getCategorias = async () => {
-            try {
-                const response: AxiosResponse<any> = await apiClient.get('/categorias');
-                if (response.data) {
-                    setCategorias(response.data)
-                }
-            } catch (error) {
-                console.log(error);
-            }
-        };
-        const getTipoDoc = async () => {
-            try {
-                const response: AxiosResponse<any> = await apiClient.get('/tipo-docs');
-                if (response.data) {
-                    setTipoDocumentos(response.data)
-                }
-            } catch (error) {
-                console.log(error);
-            }
-        };
-        getTipoDoc()
-        getCategorias();
-    }
+    const clearSession = async () => {
+        setSessionHash("");
+        setApiSessionHash(null);
+        await StoreData("sessionHash", "");
+    };
 
     return (
-        <ScppContext.Provider
-            value={{
-                sessionHash, apiPrefix, updateSessionHash, isReady, refetchDocs,
-                setRefetchdocs, categorias, tipoDocumentos, fetchAyudas
-            }}
-        >
+        <ScppContext.Provider value={{ sessionHash, updateSessionHash, clearSession, isReady }}>
             {children}
         </ScppContext.Provider>
     );
 };
 
-export default ScppProvider
+export default ScppProvider;

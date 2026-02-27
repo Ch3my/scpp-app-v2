@@ -5,7 +5,7 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from "expo-router";
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState } from 'react';
 import { GetAppStyles } from "../../../styles/styles"
 import { useTheme } from '../../ScppThemeContext';
 import { AppIconButton } from '../../../components/ui/AppIconButton';
@@ -14,28 +14,29 @@ import { AppDialog } from '../../../components/ui/AppDialog';
 import { toast } from 'sonner-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { DateTime } from "luxon";
-import { AxiosResponse } from 'axios'
-import apiClient from '../../../api/axiosClient'
-import { ScppContext } from "../../ScppContext"
 import MaskInput, { createNumberMask } from 'react-native-mask-input';
 import { useLocalSearchParams } from 'expo-router';
+import { useDocumento, useUpdateDocumento, useCategorias, useTipoDocumentos } from '../../../api/hooks';
 
 export default () => {
     const { id } = useLocalSearchParams();
+    const docId = Number(id);
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
-    const { setRefetchdocs, tipoDocumentos, categorias } = useContext(ScppContext);
+
+    const { data: documento } = useDocumento(docId);
+    const { data: categorias = [] } = useCategorias();
+    const { data: tipoDocumentos = [] } = useTipoDocumentos();
+    const updateDocumentoMutation = useUpdateDocumento();
 
     const [showDocDatePicker, setShowDocDatePicker] = useState<boolean>(false);
     const [showCategoriaList, setShowCategoriaList] = useState<boolean>(false);
     const [showCategoriaInput, setShowCategoriaInput] = useState<boolean>(true)
     const [showTipoDocList, setShowTipoDocList] = useState<boolean>(false);
     const [negativeMonto, setNegativeMonto] = useState<boolean>(false)
-    const [apiCalling, setApiCalling] = useState<boolean>(false)
 
     let [docDate, setDocDate] = useState<DateTime>(DateTime.local())
     let [docCatId, setDocCatId] = useState<number | null>(0)
-    let [docId, setDocId] = useState<number>(0)
     let [docCatName, setDocCatName] = useState<string>("")
     let [docTipoDocId, setDocTipoDocId] = useState<number>(0)
     let [docTipoDocName, setDocTipoDocName] = useState<string>("")
@@ -43,37 +44,23 @@ export default () => {
     let [docMonto, setDocMonto] = useState<number>(0)
 
     useEffect(() => {
-        const getOriginalDoc = async () => {
-            try {
-                const response: AxiosResponse<any> = await apiClient.get('/documentos', {
-                    params: {
-                        id: [id]
-                    }
-                });
-                if (response.data) {
-                    let doc = response.data[0]
-                    setDocId(doc.id)
-                    setDocDate(DateTime.fromFormat(doc.fecha, "yyyy-MM-dd"))
-                    setDocMonto(doc.monto)
-                    setDocProposito(doc.proposito)
-                    setDocCatId(doc.fk_categoria)
-                    setDocTipoDocId(doc.fk_tipoDoc)
-                    setDocCatName(doc.categoria.descripcion)
-                    setDocTipoDocName(doc.tipoDoc.descripcion)
+        if (documento) {
+            setDocDate(DateTime.fromFormat(documento.fecha, "yyyy-MM-dd"))
+            setDocMonto(documento.monto)
+            setDocProposito(documento.proposito)
+            setDocCatId(documento.fk_categoria)
+            setDocTipoDocId(documento.fk_tipoDoc)
+            setDocCatName((documento as any).categoria?.descripcion ?? "")
+            setDocTipoDocName((documento as any).tipoDoc?.descripcion ?? "")
 
-                    if (doc.fk_tipoDoc != 1) {
-                        setShowCategoriaInput(false)
-                    }
-                    if (doc.fk_tipoDoc == 1) {
-                        setShowCategoriaInput(true)
-                    }
-                }
-            } catch (error) {
-                console.log(error);
+            if (documento.fk_tipoDoc != 1) {
+                setShowCategoriaInput(false)
+            }
+            if (documento.fk_tipoDoc == 1) {
+                setShowCategoriaInput(true)
             }
         }
-        getOriginalDoc()
-    }, [])
+    }, [documento])
 
     const onChangeDocDatePicker = (selectedDate?: DateTime) => {
         setShowDocDatePicker(false)
@@ -97,36 +84,28 @@ export default () => {
             setShowCategoriaInput(true)
         }
     }
+
     const updateDoc = async () => {
-        setApiCalling(true)
-        try {
-            let computedMonto = docMonto
-            if (negativeMonto) {
-                computedMonto *= -1
-            }
-            let apiArgs = {
-                id: Number(id),
-                fk_categoria: docCatId,
-                proposito: docProposito,
-                fecha: docDate.toFormat('yyyy-MM-dd'),
-                monto: computedMonto,
-                fk_tipoDoc: docTipoDocId
-            }
-            if (docTipoDocId != 1) {
-                apiArgs.fk_categoria = null
-            }
-            let response = await apiClient.put('/documentos', apiArgs)
-            if (response.data.hasErrors) {
-                toast.error("Error al editar documento")
-                return
-            }
-            toast.success("Documento editado con Exito")
-            setRefetchdocs(true)
-        } catch (error: any) {
-            toast.error("Error al editar documento")
-        } finally {
-            setApiCalling(false)
+        let computedMonto = docMonto
+        if (negativeMonto) {
+            computedMonto *= -1
         }
+
+        updateDocumentoMutation.mutate({
+            id: docId,
+            fk_categoria: docTipoDocId != 1 ? null : docCatId,
+            proposito: docProposito,
+            fecha: docDate.toFormat('yyyy-MM-dd'),
+            monto: computedMonto,
+            fk_tipoDoc: docTipoDocId,
+        }, {
+            onSuccess: () => {
+                toast.success("Documento editado con Exito")
+            },
+            onError: () => {
+                toast.error("Error al editar documento")
+            }
+        });
     }
 
     const dollarMask = createNumberMask({
@@ -173,7 +152,7 @@ export default () => {
                     iconColor={theme.colors.onPrimary}
                     size={30}
                     onPress={updateDoc}
-                    disabled={apiCalling}
+                    disabled={updateDocumentoMutation.isPending}
                 />
             </View>
             <View style={appStyles.container}>
