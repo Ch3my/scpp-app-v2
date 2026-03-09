@@ -1,8 +1,8 @@
 import {
     TouchableOpacity,
-    View, ScrollView, Image, Modal, Text,
-    SafeAreaView
+    View, ScrollView, Image, Modal, Text
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, router } from "expo-router";
 import { useState } from 'react';
 import { GetAppStyles } from "../../../styles/styles"

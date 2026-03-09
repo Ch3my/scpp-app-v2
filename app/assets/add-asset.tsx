@@ -1,8 +1,8 @@
 import {
     View, ScrollView, Image,
-    Modal, Text, TouchableOpacity,
-    SafeAreaView
+    Modal, Text, TouchableOpacity
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from "expo-router";
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { Camera, CameraType, CameraView } from 'expo-camera';

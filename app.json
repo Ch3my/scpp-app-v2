@@ -1,7 +1,6 @@
 {
   "expo": {
     "scheme": "acme",
-    "newArchEnabled": true,
     "web": {
       "bundler": "metro"
     },
@@ -12,7 +11,8 @@
         {
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera."
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "splash": {
       "image": "./assets/images/splash.png",
@@ -31,8 +31,7 @@
       }
     },
     "android": {
-      "package": "com.chemy.scppappv2",
-      "edgeToEdgeEnabled": true
+      "package": "com.chemy.scppappv2"
     }
   }
 }
