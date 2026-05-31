@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { DateTime } from "luxon";
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker from '@expo/ui/community/datetime-picker';
 import { View, StyleSheet, Text } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
+import BottomSheet, { BottomSheetView } from '@expo/ui/community/bottom-sheet';
 import { Categoria } from '../models/Categoria';
 import { useTheme } from '../app/ScppThemeContext';
 import { AppTextInput } from './ui/AppTextInput';
@@ -66,20 +66,16 @@ export default ({
         }
     }, [visible]);
 
-    const onChangeFechaIniFilter = useCallback((event: any, selectedDate?: Date) => {
+    const onChangeFechaIniFilter = useCallback((_event: any, date: Date) => {
         setShowFechaInicioPicker(false)
-        if (selectedDate) {
-            setFechaInicio(DateTime.fromJSDate(selectedDate))
-        }
+        setFechaInicio(DateTime.fromJSDate(date, { zone: 'utc' }))
     },
         [setShowFechaInicioPicker, setFechaInicio]
     );
 
-    const onChangeFechaTerminoFilter = useCallback((event: any, selectedDate?: Date) => {
+    const onChangeFechaTerminoFilter = useCallback((_event: any, date: Date) => {
         setShowFechaTerminoPicker(false)
-        if (selectedDate) {
-            setFechaTermino(DateTime.fromJSDate(selectedDate))
-        }
+        setFechaTermino(DateTime.fromJSDate(date, { zone: 'utc' }))
     },
         [setShowFechaTerminoPicker, setFechaTermino]
     );
@@ -101,19 +97,10 @@ export default ({
         }
     }, [onDismiss]);
 
-    const renderBackDrop = useCallback((props: any) => (
-        <BottomSheetBackdrop
-            appearsOnIndex={0}
-            disappearsOnIndex={-1}
-            {...props}
-        />
-    ), []);
-
     return (
         <BottomSheet
             ref={bottomSheetRef}
             index={-1}
-            backdropComponent={renderBackDrop}
             snapPoints={snapPoints}
             enablePanDownToClose={true}
             onClose={onDismiss}
@@ -152,7 +139,9 @@ export default ({
                 />
                 {(showFechaInicioPicker && fechaInicio) && (
                     <DateTimePicker value={fechaInicio.toJSDate()} mode="date"
-                        display="default" onChange={onChangeFechaIniFilter}
+                        display="default"
+                        onValueChange={onChangeFechaIniFilter}
+                        onDismiss={() => setShowFechaInicioPicker(false)}
                     />
                 )}
                 <AppTextInput
@@ -167,7 +156,9 @@ export default ({
                 />
                 {(showFechaTerminoPicker && fechaTermino) && (
                     <DateTimePicker value={fechaTermino.toJSDate()} mode="date"
-                        display="default" onChange={onChangeFechaTerminoFilter}
+                        display="default"
+                        onValueChange={onChangeFechaTerminoFilter}
+                        onDismiss={() => setShowFechaTerminoPicker(false)}
                     />
                 )}
                 <Text style={appStyles.bodyMedium}>Categoria</Text>

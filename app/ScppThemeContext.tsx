@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   DarkTheme,
   DefaultTheme,
-} from "@react-navigation/native";
+} from "expo-router/react-navigation";
 
 // Custom theme colors (Material Design 3 palette)
 const LightColors = {

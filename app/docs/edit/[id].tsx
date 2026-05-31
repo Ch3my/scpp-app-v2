@@ -3,7 +3,6 @@ import {
     View, ScrollView,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from "expo-router";
 import { useEffect, useState } from 'react';
 import { GetAppStyles } from "../../../styles/styles"
@@ -12,7 +11,7 @@ import { AppIconButton } from '../../../components/ui/AppIconButton';
 import { AppTextInput } from '../../../components/ui/AppTextInput';
 import { AppDialog } from '../../../components/ui/AppDialog';
 import { toast } from 'sonner-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker from '@expo/ui/community/datetime-picker';
 import { DateTime } from "luxon";
 import MaskInput, { createNumberMask } from 'react-native-mask-input';
 import { useLocalSearchParams } from 'expo-router';
@@ -62,11 +61,9 @@ export default () => {
         }
     }, [documento])
 
-    const onChangeDocDatePicker = (selectedDate?: DateTime) => {
+    const onChangeDocDatePicker = (selectedDate: DateTime) => {
         setShowDocDatePicker(false)
-        if (selectedDate) {
-            setDocDate(selectedDate)
-        }
+        setDocDate(selectedDate)
     }
     const onUpdateCategoria = ({ id, descripcion }: { id: number | null, descripcion: string }) => {
         setDocCatId(id)
@@ -116,7 +113,7 @@ export default () => {
     })
 
     return (
-        <SafeAreaView style={{ flex: 1 }}  >
+        <View style={{ flex: 1 }}>
             <Stack.Screen options={{ headerTitle: "Editar Documento" }} />
             <AppDialog visible={showCategoriaList} onDismiss={() => { setShowCategoriaList(false) }}>
                 <AppDialog.Title>Categoria</AppDialog.Title>
@@ -213,11 +210,9 @@ export default () => {
                         />
                         {showDocDatePicker && (
                             <DateTimePicker testID="dateTimePicker" value={docDate.toJSDate()} mode="date"
-                                display="default" onChange={(evt, date) => {
-                                    if (date) {
-                                        onChangeDocDatePicker(DateTime.fromJSDate(date))
-                                    }
-                                }}
+                                display="default"
+                                onValueChange={(_event, date) => onChangeDocDatePicker(DateTime.fromJSDate(date, { zone: 'utc' }))}
+                                onDismiss={() => setShowDocDatePicker(false)}
                             />
                         )}
                         <AppTextInput
@@ -241,6 +236,6 @@ export default () => {
                     </View>
                 </ScrollView>
             </View>
-        </SafeAreaView>
+        </View>
     )
 }

@@ -2,7 +2,7 @@ import {
     TouchableOpacity,
     View, ScrollView, Image, Modal, Text
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, router } from "expo-router";
 import { useState } from 'react';
 import { GetAppStyles } from "../../../styles/styles"
@@ -20,6 +20,7 @@ import { useAsset, useDeleteAsset } from '../../../api/hooks';
 export default () => {
     const theme = useTheme();
     const appStyles = GetAppStyles(theme)
+    const insets = useSafeAreaInsets();
     const { id } = useLocalSearchParams();
     const assetId = Number(id);
 
@@ -86,7 +87,7 @@ export default () => {
     }));
 
     return (
-        <SafeAreaView style={{ flex: 1 }}>
+        <View style={{ flex: 1 }}>
             <Stack.Screen options={{ headerTitle: "Ver Asset" }} />
             <AppDialog visible={showConfirmDelete} onDismiss={() => { setShowConfirmDelete(false) }}>
                 <AppDialog.Title>Confirme por Favor</AppDialog.Title>
@@ -159,7 +160,7 @@ export default () => {
                     containerColor={theme.colors.primaryContainer}
                     mode="contained"
                     size={30}
-                    style={{ position: "absolute", right: 15, zIndex: 999 }}
+                    style={{ position: "absolute", top: insets.top, right: 15, zIndex: 999 }}
                     onPress={closeImgModal} />
                 <GestureHandlerRootView style={{ flex: 1 }} >
                     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -174,6 +175,6 @@ export default () => {
                     </View>
                 </GestureHandlerRootView>
             </Modal>
-        </SafeAreaView>
+        </View>
     )
 }

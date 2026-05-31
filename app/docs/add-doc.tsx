@@ -1,5 +1,5 @@
 import {
-    View, ScrollView, FlatList, Text, TouchableOpacity
+    View, ScrollView, Text, TouchableOpacity
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Stack } from "expo-router";
@@ -10,7 +10,7 @@ import { AppIconButton } from '../../components/ui/AppIconButton';
 import { AppTextInput } from '../../components/ui/AppTextInput';
 import { AppDialog } from '../../components/ui/AppDialog';
 import { toast } from 'sonner-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker from '@expo/ui/community/datetime-picker';
 import { DateTime } from "luxon";
 import MaskInput, { createNumberMask } from 'react-native-mask-input';
 import { useCategorias, useTipoDocumentos, useCreateDocumento } from '../../api/hooks';
@@ -38,11 +38,9 @@ export default () => {
     let [docProposito, setDocProposito] = useState<string>("")
     let [docMonto, setDocMonto] = useState<number>(0)
 
-    const onChangeDocDatePicker = useCallback((event: any, selectedDate?: Date) => {
+    const onChangeDocDatePicker = useCallback((_event: any, date: Date) => {
         setShowDocDatePicker(false)
-        if (selectedDate) {
-            setDocDate(selectedDate)
-        }
+        setDocDate(date)
     }, [])
     const onUpdateCategoria = useCallback(({ id, descripcion }: { id: number | null, descripcion: string }) => {
         setDocCatId(id)
@@ -83,7 +81,7 @@ export default () => {
         createDocumentoMutation.mutate({
             fk_categoria: docTipoDocId == 1 ? docCatId : null,
             proposito: docProposito,
-            fecha: DateTime.fromJSDate(docDate).toFormat('yyyy-MM-dd'),
+            fecha: DateTime.fromJSDate(docDate, { zone: 'utc' }).toFormat('yyyy-MM-dd'),
             monto: computedMonto,
             fk_tipoDoc: docTipoDocId,
         }, {
@@ -120,18 +118,15 @@ export default () => {
             </AppDialog>
             <AppDialog visible={showTipoDocList} onDismiss={() => { setShowTipoDocList(false) }}>
                 <AppDialog.Title>Tipo Documento</AppDialog.Title>
-                <AppDialog.ScrollArea>
-                    <FlatList
-                        data={tipoDocumentos}
-                        renderItem={({ item }) =>
-                            <TouchableOpacity
-                                style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: theme.colors.outlineVariant }}
-                                key={item.id}
-                                onPress={() => { onUpdateTipoDoc({ id: item.id, descripcion: item.descripcion }) }}>
-                                <Text style={appStyles.textFontSize}>{item.descripcion}</Text>
-                            </TouchableOpacity>
-                        } />
-                </AppDialog.ScrollArea>
+                <AppDialog.ListArea data={tipoDocumentos}
+                    renderItem={({ item }) =>
+                        <TouchableOpacity
+                            style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: theme.colors.outlineVariant }}
+                            key={item.id}
+                            onPress={() => { onUpdateTipoDoc({ id: item.id, descripcion: item.descripcion }) }}>
+                            <Text style={appStyles.textFontSize}>{item.descripcion}</Text>
+                        </TouchableOpacity>
+                    } />
             </AppDialog>
             <View style={[appStyles.btnRow, appStyles.onlyBtnRow]}>
                 <AppIconButton
@@ -196,13 +191,15 @@ export default () => {
                             label="Fecha"
                             mode="flat"
                             editable={false}
-                            value={DateTime.fromJSDate(docDate).toFormat('yyyy-MM-dd')}
+                            value={DateTime.fromJSDate(docDate, { zone: 'utc' }).toFormat('yyyy-MM-dd')}
                             rightIcon="calendar"
                             onRightIconPress={() => { setShowDocDatePicker(true) }}
                         />
                         {showDocDatePicker && (
                             <DateTimePicker testID="dateTimePicker" value={docDate} mode="date"
-                                display="default" onChange={onChangeDocDatePicker}
+                                display="default"
+                                onValueChange={onChangeDocDatePicker}
+                                onDismiss={() => setShowDocDatePicker(false)}
                             />
                         )}
                         <AppTextInput

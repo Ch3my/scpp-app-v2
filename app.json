@@ -12,7 +12,7 @@
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera."
         }
       ],
-      "@react-native-community/datetimepicker"
+      "expo-dev-client"
     ],
     "splash": {
       "image": "./assets/images/splash.png",

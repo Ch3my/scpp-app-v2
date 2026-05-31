@@ -1,38 +1,45 @@
 import { Stack } from "expo-router";
-import { useContext, useMemo, useEffect } from "react";
+import { useContext, useMemo, useEffect, useState } from "react";
 import { StatusBar } from "expo-status-bar";
+import { Keyboard } from "react-native";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "../api/queryClient";
 import { ScppThemeProvider, ScppThemeContext } from "./ScppThemeContext";
 import { ScppProvider } from "./ScppContext";
-import { ThemeProvider } from "@react-navigation/native";
+import { ThemeProvider } from "expo-router/react-navigation";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Toaster } from "sonner-native";
-import * as NavigationBar from "expo-navigation-bar";
+import { NavigationBar } from "expo-navigation-bar";
 import * as SystemUI from "expo-system-ui";
 
 const StackLayout: React.FC = () => {
     const { navTheme, themeName } = useContext(ScppThemeContext);
+    const [keyboardHeight, setKeyboardHeight] = useState(0);
 
-    // Memoize styles and theme-related values to avoid recalculation
+    useEffect(() => {
+        const show = Keyboard.addListener("keyboardDidShow", (e) => setKeyboardHeight(e.endCoordinates.height));
+        const hide = Keyboard.addListener("keyboardDidHide", () => setKeyboardHeight(0));
+        return () => { show.remove(); hide.remove(); };
+    }, []);
+
     const statusBarStyle = useMemo(() => (themeName === "dark" ? "light" : "dark"), [themeName]);
 
     useEffect(() => {
-        NavigationBar.setButtonStyleAsync(themeName === "dark" ? "light" : "dark");
         SystemUI.setBackgroundColorAsync(themeName === "dark" ? "#1C1B1F" : "#FFFBFE");
     }, [themeName]);
 
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
             <ThemeProvider value={navTheme}>
-                <StatusBar style={statusBarStyle} translucent={false} backgroundColor={navTheme.colors.card} />
+                <NavigationBar style={themeName === "dark" ? "light" : "dark"} />
+                <StatusBar style={statusBarStyle} />
                 <Stack>
                     {/* Had to add index here first, otherwise index.tsx did not execute in SDK 53 */}
                     <Stack.Screen name="index" />
                     <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                 </Stack>
-                <Toaster theme={themeName} position="bottom-center" />
+                <Toaster theme={themeName} position="bottom-center" offset={keyboardHeight} />
             </ThemeProvider>
         </GestureHandlerRootView>
     );

@@ -2,7 +2,6 @@ import {
     View, ScrollView, Image,
     Modal, Text, TouchableOpacity
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from "expo-router";
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { Camera, CameraType, CameraView } from 'expo-camera';
@@ -13,7 +12,7 @@ import { AppButton } from '../../components/ui/AppButton';
 import { AppTextInput } from '../../components/ui/AppTextInput';
 import { AppDialog } from '../../components/ui/AppDialog';
 import { toast } from 'sonner-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker from '@expo/ui/community/datetime-picker';
 import { DateTime } from "luxon";
 import { ConvertToBase64 } from "../../helpers/base64-file-enconder"
 import { CompressAndResizeImage } from "../../helpers/img-compressor"
@@ -66,11 +65,9 @@ export default () => {
         }
         setCameraWorking(false)
     }
-    const onChangeDatePicker = (event: any, selectedDate?: Date) => {
+    const onChangeDatePicker = (_event: any, date: Date) => {
         setShowDatePicker(false)
-        if (selectedDate) {
-            setAssetDate(selectedDate)
-        }
+        setAssetDate(date)
     }
     const onUpdateCategoria = ({ id, descripcion }: { id: number | null, descripcion: string }) => {
         setAssetCatId(id)
@@ -97,7 +94,7 @@ export default () => {
             fk_categoria: assetCatId,
             descripcion: assetDescription,
             assetData: encondedFile.base64String,
-            fecha: DateTime.fromJSDate(assetDate).toFormat('yyyy-MM-dd'),
+            fecha: DateTime.fromJSDate(assetDate, { zone: 'utc' }).toFormat('yyyy-MM-dd'),
         }, {
             onSuccess: () => {
                 toast.success("Asset guardado con Exito")
@@ -126,7 +123,7 @@ export default () => {
     }, []);
 
     return (
-        <SafeAreaView style={{ flex: 1 }}>
+        <View style={{ flex: 1 }}>
             <Stack.Screen options={{ headerTitle: "Agregar Asset" }} />
             <Modal
                 animationType="slide"
@@ -188,13 +185,15 @@ export default () => {
                     mode="flat"
                     dense={true}
                     editable={false}
-                    value={DateTime.fromJSDate(assetDate).toFormat('yyyy-MM-dd')}
+                    value={DateTime.fromJSDate(assetDate, { zone: 'utc' }).toFormat('yyyy-MM-dd')}
                     rightIcon="calendar"
                     onRightIconPress={() => { setShowDatePicker(true) }}
                 />
                 {showDatePicker && (
                     <DateTimePicker testID="dateTimePicker" value={assetDate} mode="date"
-                        display="default" onChange={onChangeDatePicker}
+                        display="default"
+                        onValueChange={onChangeDatePicker}
+                        onDismiss={() => setShowDatePicker(false)}
                     />
                 )}
                 <AppTextInput
@@ -233,6 +232,6 @@ export default () => {
                 }
 
             </ScrollView>
-        </SafeAreaView>
+        </View>
     )
 }

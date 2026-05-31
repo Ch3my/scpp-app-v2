@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback, useMemo } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import { View, StyleSheet, Text } from 'react-native';
 import { useTheme } from "../../app/ScppThemeContext"
 import Svg, { Circle, G } from 'react-native-svg';
