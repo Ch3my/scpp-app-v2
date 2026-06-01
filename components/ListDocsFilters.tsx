@@ -41,7 +41,7 @@ export default ({
     const appStyles = GetAppStyles(theme);
 
     const bottomSheetRef = useRef<BottomSheet>(null);
-    const snapPoints = useMemo(() => ['60%'], []);
+    const snapPoints = useMemo(() => ['60%', '100%'], []);
 
     const { data: categorias = [] } = useCategorias();
 

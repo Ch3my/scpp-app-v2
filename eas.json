@@ -11,10 +11,7 @@
     },
     "development": {
       "developmentClient": true,
-      "distribution": "internal",
-      "android": {
-        "applicationIdSuffix": ".development"
-      }
+      "distribution": "internal"
     },
     "preview": {
       "distribution": "internal"
